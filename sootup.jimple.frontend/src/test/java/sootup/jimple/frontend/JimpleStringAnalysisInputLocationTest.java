@@ -129,7 +129,11 @@ public class JimpleStringAnalysisInputLocationTest {
               while (bodyStmtGraphBlkIt.hasNext()) {
                   BasicBlock<?> block = bodyStmtGraphBlkIt.next();
                   List<Stmt> blockStmts = block.getStmts();
-
+                  JavaCodeStmtVisitor javaCodeStmtVisitor = new JavaCodeStmtVisitor();
+                  for (Stmt blockStmt: blockStmts) {
+                      blockStmt.accept(javaCodeStmtVisitor);
+                  }
+                  javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
               }
 
           }
