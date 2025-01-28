@@ -25,7 +25,6 @@ package sootup.jimple.frontend;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
-
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import sootup.core.graph.BasicBlock;
@@ -88,55 +87,57 @@ public class JimpleStringAnalysisInputLocationTest {
     assertTrue(view.getMethod(methodSig).isPresent());
   }
 
-
   @Test
   public void testJimpleJavaObjectPrinter() {
-      String jimpleString = "public class JimpleJavaObjectPrinter extends java.lang.Object\n" +
-              "{\n" +
-              "    int tc1()\n" +
-              "    {\n" +
-              "        byte b0, b1;\n" +
-              "        java.io.PrintStream r0;\n" +
-              "        JB_CP r1;\n" +
-              "\n" +
-              "        r1 := @this: JB_CP;\n" +
-              "        b0 = 5;\n" +
-              "        b1 = b0;\n" +
-              "        r0 = <java.lang.System: java.io.PrintStream out>;\n" +
-              "        virtualinvoke r0.<java.io.PrintStream: void println(int)>(b1);\n" +
-              "\n" +
-              "        return b1;\n" +
-              "    }\n" +
-              "}";
+    String jimpleString =
+        "public class JimpleJavaObjectPrinter extends java.lang.Object\n"
+            + "{\n"
+            + "    int tc1()\n"
+            + "    {\n"
+            + "        byte b0, b1;\n"
+            + "        java.io.PrintStream r0;\n"
+            + "        JB_CP r1;\n"
+            + "\n"
+            + "        r1 := @this: JB_CP;\n"
+            + "        b0 = 5;\n"
+            + "        b1 = b0;\n"
+            + "        r0 = <java.lang.System: java.io.PrintStream out>;\n"
+            + "        virtualinvoke r0.<java.io.PrintStream: void println(int)>(b1);\n"
+            + "\n"
+            + "        return b1;\n"
+            + "    }\n"
+            + "}";
 
-      JimpleStringAnalysisInputLocation analysisInputLocation =
-              new JimpleStringAnalysisInputLocation(
-                      jimpleString,
-                      SourceType.Application,
-                      Collections.singletonList(new DeadAssignmentEliminator()));
+    JimpleStringAnalysisInputLocation analysisInputLocation =
+        new JimpleStringAnalysisInputLocation(
+            jimpleString,
+            SourceType.Application,
+            Collections.singletonList(new DeadAssignmentEliminator()));
 
-      View view = new JimpleView(Collections.singletonList(analysisInputLocation));
-      ClassType jimpleJavaObjectPrinter = view.getIdentifierFactory().getClassType("JimpleJavaObjectPrinter");
-      assertNotNull(jimpleJavaObjectPrinter);
-      if (view.getClass(jimpleJavaObjectPrinter).isPresent()) {
-          SootClass sc = view.getClass(jimpleJavaObjectPrinter).get();
-          MethodSignature methodSignature = JavaIdentifierFactory.getInstance().getMethodSignature(jimpleJavaObjectPrinter, "tc1", "int", Collections.emptyList());
-          Optional<? extends SootMethod> method = sc.getMethod(methodSignature.getSubSignature());
-          if (method.isPresent()) {
-              Body body = method.get().getBody();
-              StmtGraph<?> bodyStmtGraph = body.getStmtGraph();
-              Iterator<BasicBlock<?>> bodyStmtGraphBlkIt = bodyStmtGraph.getBlockIterator();
-              while (bodyStmtGraphBlkIt.hasNext()) {
-                  BasicBlock<?> block = bodyStmtGraphBlkIt.next();
-                  List<Stmt> blockStmts = block.getStmts();
-                  JavaCodeStmtVisitor javaCodeStmtVisitor = new JavaCodeStmtVisitor();
-                  for (Stmt blockStmt: blockStmts) {
-                      blockStmt.accept(javaCodeStmtVisitor);
-                  }
-                  javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
-              }
-
+    View view = new JimpleView(Collections.singletonList(analysisInputLocation));
+    ClassType jimpleJavaObjectPrinter =
+        view.getIdentifierFactory().getClassType("JimpleJavaObjectPrinter");
+    assertNotNull(jimpleJavaObjectPrinter);
+    if (view.getClass(jimpleJavaObjectPrinter).isPresent()) {
+      SootClass sc = view.getClass(jimpleJavaObjectPrinter).get();
+      MethodSignature methodSignature =
+          JavaIdentifierFactory.getInstance()
+              .getMethodSignature(jimpleJavaObjectPrinter, "tc1", "int", Collections.emptyList());
+      Optional<? extends SootMethod> method = sc.getMethod(methodSignature.getSubSignature());
+      if (method.isPresent()) {
+        Body body = method.get().getBody();
+        JavaCodeStmtVisitor javaCodeStmtVisitor = new JavaCodeStmtVisitor(body);
+        StmtGraph<?> bodyStmtGraph = body.getStmtGraph();
+        Iterator<BasicBlock<?>> bodyStmtGraphBlkIt = bodyStmtGraph.getBlockIterator();
+        while (bodyStmtGraphBlkIt.hasNext()) {
+          BasicBlock<?> block = bodyStmtGraphBlkIt.next();
+          List<Stmt> blockStmts = block.getStmts();
+          for (Stmt blockStmt : blockStmts) {
+            blockStmt.accept(javaCodeStmtVisitor);
           }
+          javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
+        }
       }
+    }
   }
 }
