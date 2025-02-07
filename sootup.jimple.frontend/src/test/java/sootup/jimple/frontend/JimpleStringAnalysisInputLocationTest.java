@@ -40,6 +40,7 @@ import sootup.core.types.VoidType;
 import sootup.core.views.View;
 import sootup.interceptors.DeadAssignmentEliminator;
 import sootup.java.core.JavaIdentifierFactory;
+import sootup.jimple.frontend.buildjavacode.JavaCodeStmtVisitor;
 
 @Tag("Java8")
 public class JimpleStringAnalysisInputLocationTest {

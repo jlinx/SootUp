@@ -235,6 +235,17 @@ public class Body implements HasPosition {
     return getStmtGraph().isStmtBranchTarget(targetStmt);
   }
 
+  /** Returns the last stmt in this body. */
+  @Nonnull
+  public Stmt getLastStmt() {
+    Iterator<Stmt> it = getStmts().iterator();
+    Stmt o = it.next();
+    while (it.hasNext()) {
+      o = it.next();
+    }
+    return o;
+  }
+
   /** Returns the first non-identity stmt in this body. */
   @Nonnull
   public Stmt getFirstNonIdentityStmt() {

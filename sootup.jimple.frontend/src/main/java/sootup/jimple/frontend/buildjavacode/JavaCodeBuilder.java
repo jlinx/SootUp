@@ -1,4 +1,4 @@
-package sootup.jimple.frontend;
+package sootup.jimple.frontend.buildjavacode;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -18,10 +18,11 @@ public class JavaCodeBuilder {
 
   private final List<String> javaCodeObjects = new LinkedList<>();
   Map<String, String> varAndType = new HashMap<>();
+  JavaCodeValueVisitor javaCodeValueVisitor = new JavaCodeValueVisitor();
 
   public JavaCodeBuilder(Body body) {
     this.initJavaCode();
-    this.createStmtGraph();
+    this.createStmtGraph(body);
     this.createMethod();
     this.createClass();
   }
@@ -31,40 +32,25 @@ public class JavaCodeBuilder {
   }
 
   public void createClass() {
-    String classString =
-        "JavaSootClass mainClass = new JavaSootClass(new OverridingJavaClassSource("
-            + "new EagerInputLocation(),"
-            + "null,"
-            + "view.getIdentifierFactory().getClassType(\"dummyMain\"),"
-            + "null,"
-            + "Collections.emptySet(),"
-            + "null,"
-            + "Collections.emptySet(),"
-            + "Collections.singleton(dummyMainMethod),"
-            + "NoPositionInformation.getInstance(),"
-            + "EnumSet.of(ClassModifier.PUBLIC),"
-            + "Collections.emptyList(),"
-            + "Collections.emptyList(),"
-            + "Collections.emptyList()),"
-            + "SourceType.Application);";
+    JavaCodeClassSpec javaCodeClassSpec = new JavaCodeClassSpec();
+    javaCodeClassSpec.addModifier("public");
+    String classString = javaCodeClassSpec.build();
     javaCodeObjects.add(classString);
   }
 
   public void createMethod() {
-    String methodString =
-        "JavaSootMethod dummyMainMethod = new JavaSootMethod("
-            + "new OverridingBodySource(methodSignature, body),"
-            + "methodSignature,"
-            + "EnumSet.of(MethodModifier.PUBLIC, MethodModifier.STATIC),"
-            + "Collections.emptyList(),"
-            + "Collections.emptyList(),"
-            + "NoPositionInformation.getInstance());";
-    javaCodeObjects.add(methodString);
+    JavaCodeMethodSpec javaCodeMethodSpec = new JavaCodeMethodSpec();
+    javaCodeMethodSpec.addMethodSignature("dummyMain", "main", "void", "Collections.empty()");
+    javaCodeMethodSpec.addModifier("public").addModifier("static");
+    String methodStr = javaCodeMethodSpec.build();
+    javaCodeObjects.add(methodStr);
   }
 
-  public void createStmtGraph() {
+  public void createStmtGraph(Body body) {
     javaCodeObjects.add("MutableStmtGraph stmtGraph = bodyBuilder.getStmtGraph();");
-    javaCodeObjects.add(String.format("stmtGraph.setStartingStmt(%s);", javaCodeObjects.get(0)));
+    javaCodeObjects.add(String.format("stmtGraph.setStartingStmt(%s);", body.getFirstNonIdentityStmt()));
+    // TODO: loop over statements and put edges
+    javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, %s)", body.getFirstNonIdentityStmt(), body.getLastStmt()));
   }
 
   public void initJavaCode() {
@@ -107,9 +93,9 @@ public class JavaCodeBuilder {
     javaCodeObjects.add(
         String.format(
             "Stmt %s = JavaJimple.newAssignment(JavaJimple.newLocal(\"%s\", factory.classType(\"%s\")), %s , noStmtPositionInfo)",
-            stmt.getLeftOp().toString(),
-            stmt.getLeftOp().toString(),
-            stmt.getType().toString(),
+                stmt.getLeftOp(),
+                stmt.getLeftOp(),
+                stmt.getType(),
             typeString));
   }
 
