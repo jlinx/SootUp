@@ -1,5 +1,7 @@
 package sootup.jimple.frontend.buildjavacode;
 
+import sootup.core.IdentifierFactory;
+import sootup.core.jimple.Jimple;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
 import sootup.core.jimple.common.constant.*;
@@ -7,17 +9,28 @@ import sootup.core.jimple.common.expr.*;
 import sootup.core.jimple.common.ref.*;
 import sootup.core.jimple.visitor.ValueVisitor;
 import sootup.core.jimple.visitor.Visitor;
+import sootup.core.signatures.FieldSignature;
+import sootup.java.core.JavaIdentifierFactory;
+import sootup.java.core.types.JavaClassType;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class StmtValueVisitor implements ValueVisitor, Visitor {
 
-    Map<String, String> valueGenStr = new HashMap<>();
+    private final Map<Value, String> valueGenStr = new HashMap<>();
+    private final Map<Value, String> valueVarName = new HashMap<>();
+    static int valueCounter = 1;
 
-    public Map<String, String> getValueGenStr() {
+    public Map<Value, String> getValueGenStr() {
         return valueGenStr;
+    }
+
+    public Map<Value, String> getValueVarName() {
+        return valueVarName;
     }
 
     @Override
@@ -27,87 +40,135 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
 
     @Override
     public void caseLocal(@Nonnull Local local) {
-        String localStr = String.format(
-                "Local %s = JavaJimple.newLocal(\"%s\", factory.getClassType(\"%s\"));",
-                local.getName(), local.getName(), local.getType());
-        valueGenStr.put(local.getName(), localStr);
+        if (!valueGenStr.containsKey(local)) {
+            String localVarName = "local" + valueCounter++;
+            valueVarName.put(local, localVarName);
+            String localStr = String.format(
+                    "Local %s = JavaJimple.newLocal(\"%s\", factory.getClassType(\"%s\"));",
+                    localVarName, local.getName(), local.getType());
+            valueGenStr.put(local, localStr);
+        }
         System.out.println("caseLocal");
     }
 
     @Override
     public void caseBooleanConstant(@Nonnull BooleanConstant constant) {
-        String boolConstStr = String.format("BooleanConstant %s = new BooleanConstant(%s);", constant, constant);
-        valueGenStr.put(constant.toString(), boolConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String boolVarName = "bool" + valueCounter++;
+            valueVarName.put(constant, boolVarName);
+            String boolConstStr = String.format("BooleanConstant %s = new BooleanConstant(%s);", boolVarName, constant);
+            valueGenStr.put(constant, boolConstStr);
+        }
         System.out.println("caseBooleanConstant");
     }
 
     @Override
     public void caseDoubleConstant(@Nonnull DoubleConstant constant) {
-        String doubleConstStr = String.format("DoubleConstant %s = DoubleConstant.getInstance(%s);", constant, constant.getValue());
-        valueGenStr.put(constant.toString(), doubleConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String doubleVarName = "double" + valueCounter++;
+            valueVarName.put(constant, doubleVarName);
+            String doubleConstStr = String.format("DoubleConstant %s = DoubleConstant.getInstance(%s);", doubleVarName, constant.getValue());
+            valueGenStr.put(constant, doubleConstStr);
+        }
         System.out.println("caseDoubleConstant");
     }
 
     @Override
     public void caseFloatConstant(@Nonnull FloatConstant constant) {
-        String floatConstStr = String.format("FloatConstant %s = FloatConstant.getInstance(%s);", constant, constant.getValue());
-        valueGenStr.put(constant.toString(), floatConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String floatVarName = "float" + valueCounter++;
+            valueVarName.put(constant, floatVarName);
+            String floatConstStr = String.format("FloatConstant %s = FloatConstant.getInstance(%s);", floatVarName, constant.getValue());
+            valueGenStr.put(constant, floatConstStr);
+        }
         System.out.println("caseFloatConstant");
     }
 
     @Override
     public void caseIntConstant(@Nonnull IntConstant constant) {
-        String intConstStr = String.format("IntConstant %s = IntConstant.getInstance(%s);", constant, constant.getValue());
-        valueGenStr.put(constant.toString(), intConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String intVarName = "int" + valueCounter++;
+            valueVarName.put(constant, intVarName);
+            String intConstStr = String.format("IntConstant %s = IntConstant.getInstance(%s);", intVarName, constant.getValue());
+            valueGenStr.put(constant, intConstStr);
+        }
         System.out.println("caseIntConstant");
     }
 
     @Override
     public void caseLongConstant(@Nonnull LongConstant constant) {
-        String longConstStr = String.format("LongConstant %s = LongConstant.getInstance(%s);", constant, constant.getValue());
-        valueGenStr.put(constant.toString(), longConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String longVarName = "long" + valueCounter++;
+            valueVarName.put(constant, longVarName);
+            String longConstStr = String.format("LongConstant %s = LongConstant.getInstance(%s);", longVarName, constant.getValue());
+            valueGenStr.put(constant, longConstStr);
+        }
         System.out.println("caseLongConstant");
     }
 
     @Override
     public void caseNullConstant(@Nonnull NullConstant constant) {
-        String nullConstStr = String.format("NullConstant %s = NullConstant.getInstance();", constant);
-        valueGenStr.put(constant.toString(), nullConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String nullVarName = "null" + valueCounter++;
+            valueVarName.put(constant, nullVarName);
+            String nullConstStr = String.format("NullConstant %s = NullConstant.getInstance();", nullVarName);
+            valueGenStr.put(constant, nullConstStr);
+        }
         System.out.println("caseNullConstant");
     }
 
     @Override
     public void caseStringConstant(@Nonnull StringConstant constant) {
-        String strConstStr = String.format("StringConstant %s = JavaJimple.getInstance().newStringConstant(\"%s\");", constant, constant.getValue());
-        valueGenStr.put(constant.toString(), strConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String strVarName = "str" + valueCounter++;
+            valueVarName.put(constant, strVarName);
+            String strConstStr = String.format("StringConstant %s = JavaJimple.getInstance().newStringConstant(\"%s\");", strVarName, constant.getValue());
+            valueGenStr.put(constant, strConstStr);
+        }
         System.out.println("caseStringConstant");
     }
 
     @Override
     public void caseEnumConstant(@Nonnull EnumConstant constant) {
-        String enumConstStr = String.format("EnumConstant %s = JavaJimple.getInstance().newEnumConstant(\"%s\");", constant, constant.getValue());
-        valueGenStr.put(constant.toString(), enumConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String enumVarName = "enum" + valueCounter++;
+            valueVarName.put(constant, enumVarName);
+            String enumConstStr = String.format("EnumConstant %s = JavaJimple.getInstance().newEnumConstant(\"%s\");", enumVarName, constant.getValue());
+            valueGenStr.put(constant, enumConstStr);
+        }
         System.out.println("caseEnumConstant");
     }
 
     @Override
     public void caseClassConstant(@Nonnull ClassConstant constant) {
-        String classConstStr = String.format("ClassConstant %s = JavaJimple.getInstance().newClassConstant(\"%s\");", constant, constant.getValue());
-        valueGenStr.put(constant.toString(), classConstStr);
+        if (!valueGenStr.containsKey(constant)) {
+            String clsVarName = "cls" + valueCounter++;
+            valueVarName.put(constant, clsVarName);
+            String classConstStr = String.format("ClassConstant %s = JavaJimple.getInstance().newClassConstant(\"%s\");", clsVarName, constant.getValue());
+            valueGenStr.put(constant, classConstStr);
+        }
         System.out.println("caseClassConstant");
     }
 
     @Override
     public void caseMethodHandle(@Nonnull MethodHandle handle) {
-        String methodHandleStr = String.format("MethodHandle %s = JavaJimple.getInstance().newMethodHandle(%s, %s);", handle, handle.getReferenceSignature(), handle.getKind().toString());
-        valueGenStr.put(handle.toString(), methodHandleStr);
+        if (!valueGenStr.containsKey(handle)) {
+            String methodHandleVarName = "methodHandle" + valueCounter++;
+            valueVarName.put(handle, methodHandleVarName);
+            String methodHandleStr = String.format("MethodHandle %s = JavaJimple.getInstance().newMethodHandle(%s, %s);", methodHandleVarName, handle.getReferenceSignature(), handle.getKind().toString());
+            valueGenStr.put(handle, methodHandleStr);
+        }
         System.out.println("caseMethodHandle");
     }
 
     @Override
     public void caseMethodType(@Nonnull MethodType methodType) {
-        String methodTypeStr = String.format("MethodType %s = new MethodType(%s, %s);", methodType, methodType.getReturnType(), methodType.hashCode());
-        valueGenStr.put(methodType.toString(), methodTypeStr);
+        if (!valueGenStr.containsKey(methodType)) {
+            String methodTypeVarName = "methodType" + valueCounter++;
+            valueVarName.put(methodType, methodTypeVarName);
+            String methodTypeStr = String.format("MethodType %s = new MethodType(%s, %s);", methodTypeVarName, methodType.getReturnType(), methodType.hashCode());
+            valueGenStr.put(methodType, methodTypeStr);
+        }
         System.out.println("caseMethodType");
     }
 
@@ -344,6 +405,16 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
 
     @Override
     public void caseStaticFieldRef(JStaticFieldRef ref) {
+        if (!valueGenStr.containsKey(ref)) {
+            int i = valueCounter++;
+            String staticFieldRefVarName = "staticFieldRef" + i;
+            valueVarName.put(ref, staticFieldRefVarName);
+            String fieldSigVarName = "fieldSig" + i;
+            String fieldSigStr = String.format("FieldSignature %s = view.getIdentifierFactory().getFieldSignature(\"%s\", JavaIdentifierFactory.getInstance().getClassType(\"%s\"), \"%s\");",
+                    fieldSigVarName, ref.getFieldSignature().getName(), ref.getFieldSignature().getDeclClassType(), ref.getType());
+            String staticFieldRefStr = String.format("JStaticFieldRef %s = Jimple.newStaticFieldRef(%s);", staticFieldRefVarName, fieldSigVarName);
+            valueGenStr.put(ref, String.join(fieldSigStr, "\n", staticFieldRefStr));
+        }
         System.out.println("caseStaticFieldRef");
     }
 
@@ -362,18 +433,34 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
 
     @Override
     public void caseParameterRef(JParameterRef ref) {
+        if (!valueGenStr.containsKey(ref)) {
+            String parameterRefVarName = "parameterRef" + valueCounter++;
+            valueVarName.put(ref, parameterRefVarName);
+            String parameterRefStr = String.format("JParameterRef %s = new JParameterRef(JavaIdentifierFactory.getInstance().getType(\"%s\"), %s);", parameterRefVarName, ref.getType(), ref.getIndex());
+            valueGenStr.put(ref, parameterRefStr);
+        }
         System.out.println("caseParameterRef");
     }
 
     @Override
     public void caseCaughtExceptionRef(JCaughtExceptionRef ref) {
-        String caughtExceptionRefStr = String.format("JCaughtExceptionRef %s = new JCaughtExceptionRef(JavaIdentifierFactory.getInstance().getType(\"java.lang.Throwable\"));", ref.toString());
-        valueGenStr.put(ref.toString(), caughtExceptionRefStr);
+        if (!valueGenStr.containsKey(ref)) {
+            String caughtExceptionRefVarName = "caughtException" + valueCounter++;
+            valueVarName.put(ref, caughtExceptionRefVarName);
+            String caughtExceptionRefStr = String.format("JCaughtExceptionRef %s = new JCaughtExceptionRef(JavaIdentifierFactory.getInstance().getType(\"java.lang.Throwable\"));", caughtExceptionRefVarName);
+            valueGenStr.put(ref, caughtExceptionRefStr);
+        }
         System.out.println("caseCaughtExceptionRef");
     }
 
     @Override
     public void caseThisRef(JThisRef ref) {
+        if (!valueGenStr.containsKey(ref)) {
+            String thisRefVarName = "thisRef" + valueCounter++;
+            valueVarName.put(ref, thisRefVarName);
+            String thisRefStr = String.format("JThisRef %s = new JThisRef(JavaIdentifierFactory.getInstance().getType(\"%s\"));", thisRefVarName, ref.getType());
+            valueGenStr.put(ref, thisRefStr);
+        }
         System.out.println("caseThisRef");
     }
 

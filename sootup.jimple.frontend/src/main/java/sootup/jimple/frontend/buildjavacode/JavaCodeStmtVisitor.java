@@ -1,5 +1,10 @@
 package sootup.jimple.frontend.buildjavacode;
 
+import com.google.common.collect.Lists;
+import sootup.core.jimple.basic.LValue;
+import sootup.core.jimple.basic.Local;
+import sootup.core.jimple.basic.Value;
+import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.ref.JThisRef;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.jimple.javabytecode.stmt.*;
@@ -7,8 +12,9 @@ import sootup.core.jimple.visitor.StmtVisitor;
 import sootup.core.jimple.visitor.Visitor;
 import sootup.core.model.Body;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
@@ -20,7 +26,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     this.javaCodeBuilder = new JavaCodeBuilder(body);
   }
 
-  public List<String> getJavaCodeObjects() {
+  public Set<String> getJavaCodeObjects() {
     return javaCodeBuilder.getJavaCodeObjects();
   }
 
@@ -68,14 +74,21 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     if (stmt.containsInvokeExpr()){
       stmt.getInvokeExpr().get().accept(stmtValueVisitor);
     }
-    if (stmt.getDef().isPresent()) {
-      stmt.getDef().get().accept(stmtValueVisitor);
-    }
 
-    stmt.getRightOp().accept(stmtValueVisitor);
-    stmt.getLeftOp().accept(stmtValueVisitor);
+    LValue leftOp = stmt.getLeftOp();
+    Value rightOp = stmt.getRightOp();
+    rightOp.accept(stmtValueVisitor);
+    leftOp.accept(stmtValueVisitor);
 
-    javaCodeBuilder.addAssignment(stmt);
+    Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
+    List<Value> vals = Arrays.asList(leftOp, rightOp);
+    List<String> valStrList = valueGenStr.keySet().stream()
+            .filter(vals::contains)
+            .map(valueGenStr::get) // Get the value for each key
+            .collect(Collectors.toList());
+
+    Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
+    javaCodeBuilder.addAssignment(stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
     System.out.println("Assignment");
   }
 
@@ -88,17 +101,25 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
       stmt.getFieldRef().accept(stmtValueVisitor);
     }
 
-    stmt.getLeftOp().accept(stmtValueVisitor);
-    stmt.getRightOp().accept(stmtValueVisitor);
+    Local leftOp = stmt.getLeftOp();
+    IdentityRef rightOp = stmt.getRightOp();
 
-    Map<String, String> valueGenStr = stmtValueVisitor.getValueGenStr();
+    leftOp.accept(stmtValueVisitor);
+    rightOp.accept(stmtValueVisitor);
 
-    // javaCodeBuilder.addIdentity(stmt);
-    if (stmt.getRightOp() instanceof JThisRef) {
-      javaCodeBuilder.addThisRef(stmt.getLeftOp(), stmt.getRightOp().getType());
-    } else {
-      javaCodeBuilder.addLocal(stmt.getLeftOp());
-    }
+    Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
+    Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
+
+    List<Value> vals = Arrays.asList(leftOp, rightOp);
+    List<String> valStrList = valueGenStr.keySet().stream()
+            .filter(vals::contains)
+            .map(valueGenStr::get) // Get the value for each key
+            .collect(Collectors.toList());
+
+    javaCodeBuilder.addJIdentityStmt(stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
+
+    Map<Stmt, String> stmtGenStr = javaCodeBuilder.getStmtGenStr();
+    Map<Stmt, String> stmtVarName = javaCodeBuilder.getStmtVarName();
 
     System.out.println("Identity");
   }

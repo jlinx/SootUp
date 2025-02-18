@@ -1,10 +1,9 @@
 package sootup.jimple.frontend.buildjavacode;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import sootup.core.jimple.basic.Local;
+import sootup.core.jimple.basic.Value;
 import sootup.core.jimple.common.constant.IntConstant;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.jimple.javabytecode.stmt.JEnterMonitorStmt;
@@ -16,18 +15,28 @@ import sootup.core.types.Type;
 
 public class JavaCodeBuilder {
 
-  private final List<String> javaCodeObjects = new LinkedList<>();
-  Map<String, String> varAndType = new HashMap<>();
-  JavaCodeValueVisitor javaCodeValueVisitor = new JavaCodeValueVisitor();
+  private final Set<String> javaCodeObjects = new LinkedHashSet<>();
+  Map<Stmt, String> stmtGenStr = new HashMap<>();
+  Map<Stmt, String> stmtVarName = new HashMap<>();
+  static int stmtCounter = 1;
+
+  public Map<Stmt, String> getStmtGenStr() {
+    return stmtGenStr;
+  }
+
+  public Map<Stmt, String> getStmtVarName() {
+    return stmtVarName;
+  }
 
   public JavaCodeBuilder(Body body) {
     this.initJavaCode();
+    // TODO: StmtGraph Edges must be inserted at the last
     this.createStmtGraph(body);
-    this.createMethod();
-    this.createClass();
+    // this.createMethod();
+    // this.createClass();
   }
 
-  public List<String> getJavaCodeObjects() {
+  public Set<String> getJavaCodeObjects() {
     return javaCodeObjects;
   }
 
@@ -64,39 +73,31 @@ public class JavaCodeBuilder {
             "noStmtPositionInfo"));
   }
 
-  public void addThisRef(Local leftOp, Type classType) {
-    javaCodeObjects.add(
-        String.format(
-            "IdentityRef %s = JavaJimple.newThisRef(factory.getClassType(\"%s\"));",
-            leftOp.getName(), classType));
-  }
-
-  public void addLocal(Local value) {
-    javaCodeObjects.add(
-        String.format(
-            "Local %s = JavaJimple.newLocal(\"%s\", factory.getClassType(\"%s\"));",
-            value, value.getName(), value.getType()));
-  }
-
-  public void addAssignment(JAssignStmt stmt) {
-    String typeString = "";
-    if (stmt.getRightOp() instanceof IntConstant) {
-      typeString =
-          String.format(
-              "IntConstant.getInstance(%s)", ((IntConstant) stmt.getRightOp()).getValue());
-    } else if (stmt.getRightOp() instanceof Local) {
-      typeString =
-          String.format(
-              "JavaJimple.newLocal(\"%s\", factory.getClassType(\"%s\"))",
-              ((Local) stmt.getRightOp()).getName(), stmt.getRightOp().getType());
+  public void addJIdentityStmt(JIdentityStmt stmt, String localVarName, String rightOpName, List<String> getValueStrs) {
+    if (!stmtGenStr.containsKey(stmt)) {
+      String identityVarName = "identity" + stmtCounter++;
+      stmtVarName.put(stmt, identityVarName);
+      javaCodeObjects.addAll(getValueStrs);
+      String identityStmtStr = String.format("JIdentityStmt %s = new JIdentityStmt(%s, %s, noStmtPositionInfo);", identityVarName, localVarName, rightOpName);
+      stmtGenStr.put(stmt, identityStmtStr);
+      javaCodeObjects.add(identityStmtStr);
     }
-    javaCodeObjects.add(
-        String.format(
-            "Stmt %s = JavaJimple.newAssignment(JavaJimple.newLocal(\"%s\", factory.classType(\"%s\")), %s , noStmtPositionInfo)",
-                stmt.getLeftOp(),
-                stmt.getLeftOp(),
-                stmt.getType(),
-            typeString));
+  }
+
+  public void addAssignment(JAssignStmt stmt, String leftOpVarName, String rightOpVarName, List<String> getValueStrs) {
+    if (!stmtGenStr.containsKey(stmt)) {
+
+      String assignmentVarName = "assignment" + stmtCounter++;
+      stmtVarName.put(stmt, assignmentVarName);
+      javaCodeObjects.addAll(getValueStrs);
+      String assignmentStmtStr = String.format(
+              "JAssignStmt %s = JavaJimple.newAssignment(%s, %s , noStmtPositionInfo)",
+              assignmentVarName,
+              leftOpVarName,
+              rightOpVarName);
+      stmtGenStr.put(stmt, assignmentStmtStr);
+      javaCodeObjects.add(assignmentStmtStr);
+    }
   }
 
   public void addNop(JNopStmt stmt) {
