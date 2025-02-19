@@ -1,7 +1,5 @@
 package sootup.jimple.frontend.buildjavacode;
 
-import sootup.core.IdentifierFactory;
-import sootup.core.jimple.Jimple;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
 import sootup.core.jimple.common.constant.*;
@@ -9,14 +7,9 @@ import sootup.core.jimple.common.expr.*;
 import sootup.core.jimple.common.ref.*;
 import sootup.core.jimple.visitor.ValueVisitor;
 import sootup.core.jimple.visitor.Visitor;
-import sootup.core.signatures.FieldSignature;
-import sootup.java.core.JavaIdentifierFactory;
-import sootup.java.core.types.JavaClassType;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 public class StmtValueVisitor implements ValueVisitor, Visitor {
@@ -413,7 +406,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
             String fieldSigStr = String.format("FieldSignature %s = view.getIdentifierFactory().getFieldSignature(\"%s\", JavaIdentifierFactory.getInstance().getClassType(\"%s\"), \"%s\");",
                     fieldSigVarName, ref.getFieldSignature().getName(), ref.getFieldSignature().getDeclClassType(), ref.getType());
             String staticFieldRefStr = String.format("JStaticFieldRef %s = Jimple.newStaticFieldRef(%s);", staticFieldRefVarName, fieldSigVarName);
-            valueGenStr.put(ref, String.join(fieldSigStr, "\n", staticFieldRefStr));
+            valueGenStr.put(ref, String.join("\n", fieldSigStr, staticFieldRefStr));
         }
         System.out.println("caseStaticFieldRef");
     }

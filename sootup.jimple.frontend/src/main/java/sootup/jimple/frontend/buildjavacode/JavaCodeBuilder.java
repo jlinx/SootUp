@@ -1,17 +1,13 @@
 package sootup.jimple.frontend.buildjavacode;
 
-import java.util.*;
-
-import sootup.core.jimple.basic.Local;
-import sootup.core.jimple.basic.Value;
-import sootup.core.jimple.common.constant.IntConstant;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.jimple.javabytecode.stmt.JEnterMonitorStmt;
 import sootup.core.jimple.javabytecode.stmt.JExitMonitorStmt;
 import sootup.core.jimple.javabytecode.stmt.JRetStmt;
 import sootup.core.jimple.javabytecode.stmt.JSwitchStmt;
 import sootup.core.model.Body;
-import sootup.core.types.Type;
+
+import java.util.*;
 
 public class JavaCodeBuilder {
 
@@ -30,8 +26,6 @@ public class JavaCodeBuilder {
 
   public JavaCodeBuilder(Body body) {
     this.initJavaCode();
-    // TODO: StmtGraph Edges must be inserted at the last
-    this.createStmtGraph(body);
     // this.createMethod();
     // this.createClass();
   }
@@ -58,11 +52,23 @@ public class JavaCodeBuilder {
   public void createStmtGraph(Body body) {
     javaCodeObjects.add("MutableStmtGraph stmtGraph = bodyBuilder.getStmtGraph();");
     javaCodeObjects.add(String.format("stmtGraph.setStartingStmt(%s);", body.getFirstNonIdentityStmt()));
-    // TODO: loop over statements and put edges
-    javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, %s)", body.getFirstNonIdentityStmt(), body.getLastStmt()));
+    // loop over statements and put edges
+    List<Stmt> bodyStmts = body.getStmts();
+    if (!bodyStmts.isEmpty()) {
+      Iterator<Stmt> stmtIterator = bodyStmts.iterator();
+      Stmt previous = stmtIterator.next();
+      while (stmtIterator.hasNext()) {
+        Stmt current = stmtIterator.next();
+        String outNode = stmtVarName.get(previous);
+        String inNode = stmtVarName.get(current);
+        javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, %s);", outNode, inNode));
+        previous = current;
+      }
+    }
   }
 
   public void initJavaCode() {
+    javaCodeObjects.add("JavaView view = new JavaView(Collections.singletonList(new EagerInputLocation()));");
     javaCodeObjects.add("Body.BodyBuilder bodyBuilder = Body.builder()");
     javaCodeObjects.add(
         String.format(

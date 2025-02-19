@@ -1,20 +1,20 @@
 package sootup.jimple.frontend.buildjavacode;
 
-import com.google.common.collect.Lists;
 import sootup.core.jimple.basic.LValue;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
 import sootup.core.jimple.common.ref.IdentityRef;
-import sootup.core.jimple.common.ref.JThisRef;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.jimple.javabytecode.stmt.*;
 import sootup.core.jimple.visitor.StmtVisitor;
 import sootup.core.jimple.visitor.Visitor;
 import sootup.core.model.Body;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
@@ -24,6 +24,10 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
   public JavaCodeStmtVisitor(Body body) {
     this.javaCodeBuilder = new JavaCodeBuilder(body);
+  }
+
+  public void createStmtGraph(Body body) {
+    javaCodeBuilder.createStmtGraph(body);
   }
 
   public Set<String> getJavaCodeObjects() {
@@ -117,10 +121,6 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
             .collect(Collectors.toList());
 
     javaCodeBuilder.addJIdentityStmt(stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
-
-    Map<Stmt, String> stmtGenStr = javaCodeBuilder.getStmtGenStr();
-    Map<Stmt, String> stmtVarName = javaCodeBuilder.getStmtVarName();
-
     System.out.println("Identity");
   }
 
