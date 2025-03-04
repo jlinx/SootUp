@@ -106,6 +106,18 @@ public class JavaCodeBuilder {
     }
   }
 
+  public void addInvoke(JInvokeStmt stmt, String exprVarName, List<String> getValueStrs) {
+    if (!stmtGenStr.containsKey(stmt)) {
+      String invokeVarName = "invoke" + stmtCounter++;
+      stmtVarName.put(stmt, invokeVarName);
+      javaCodeObjects.addAll(getValueStrs);
+      String invokeStmtStr = String.format("JInvokeStmt %s = new JInvokeStmt(%s, noStmtPositionInfo);",
+              invokeVarName, exprVarName);
+      stmtGenStr.put(stmt, invokeStmtStr);
+      javaCodeObjects.add(invokeStmtStr);
+    }
+  }
+
   public void addNop(JNopStmt stmt) {
     javaCodeObjects.add(
         String.format("Stmt nop = new JNopStmt(StmtPositionInfo.getNoStmtPositionInfo())"));
@@ -123,11 +135,17 @@ public class JavaCodeBuilder {
             stmt.getStmtAddress()));
   }
 
-  public void addJReturn(JReturnStmt stmt) {
-    javaCodeObjects.add(
-        String.format(
-            "Stmt jreturn = new JReturnStmt(%s, StmtPositionInfo.getNoStmtPositionInfo());",
-            stmt.getOp()));
+  public void addJReturn(JReturnStmt stmt, String returnOpVarName, List<String> getValueStrs) {
+    if (!stmtGenStr.containsKey(stmt)) {
+      String returnVarName = "return" + stmtCounter++;
+      stmtVarName.put(stmt, returnVarName);
+      javaCodeObjects.addAll(getValueStrs);
+
+      String returnStmtStr = String.format("JReturn %s = new JReturn(%s, noStmtPositionInfo);",
+              returnVarName, returnOpVarName);
+      stmtGenStr.put(stmt, returnStmtStr);
+      javaCodeObjects.add(returnStmtStr);
+    }
   }
 
   public void addJThrow(JThrowStmt stmt) {

@@ -3,6 +3,7 @@ package sootup.jimple.frontend.buildjavacode;
 import sootup.core.jimple.basic.LValue;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
+import sootup.core.jimple.common.expr.AbstractInvokeExpr;
 import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.jimple.javabytecode.stmt.*;
@@ -10,10 +11,7 @@ import sootup.core.jimple.visitor.StmtVisitor;
 import sootup.core.jimple.visitor.Visitor;
 import sootup.core.model.Body;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
@@ -51,18 +49,32 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
   @Override
   public void caseInvokeStmt(JInvokeStmt stmt) {
+    List<Value> vals = new ArrayList<>();
     if (stmt.containsArrayRef()) {
       stmt.getArrayRef().accept(stmtValueVisitor);
+      vals.add(stmt.getArrayRef());
     }
     if (stmt.containsFieldRef()) {
       stmt.getFieldRef().accept(stmtValueVisitor);
+      vals.add(stmt.getFieldRef());
     }
     if (stmt.containsInvokeExpr()){
       stmt.getInvokeExpr().get().accept(stmtValueVisitor);
+      AbstractInvokeExpr invokeExpr = stmt.getInvokeExpr().get();
+      vals.add(invokeExpr);
     }
     if (stmt.getDef().isPresent()) {
       stmt.getDef().get().accept(stmtValueVisitor);
+      vals.add(stmt.getDef().get());
     }
+
+    Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
+    List<String> valStrList = valueGenStr.keySet().stream()
+            .filter(vals::contains)
+            .map(valueGenStr::get) // Get the value for each key
+            .collect(Collectors.toList());
+    Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
+    javaCodeBuilder.addInvoke(stmt, valueVarName.get(stmt.getInvokeExpr().get()) ,valStrList);
 
     System.out.println("Invoke");
   }
@@ -226,18 +238,30 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
   @Override
   public void caseReturnStmt(JReturnStmt stmt) {
+    List<Value> vals = new ArrayList<>();
     if (stmt.containsArrayRef()) {
       stmt.getArrayRef().accept(stmtValueVisitor);
+      vals.add(stmt.getArrayRef());
     }
     if (stmt.containsFieldRef()) {
       stmt.getFieldRef().accept(stmtValueVisitor);
+      vals.add(stmt.getFieldRef());
     }
     if (stmt.getDef().isPresent()) {
       stmt.getDef().get().accept(stmtValueVisitor);
+      vals.add(stmt.getDef().get());
     }
     stmt.getOp().accept(stmtValueVisitor);
+    vals.add(stmt.getOp());
 
-    javaCodeBuilder.addJReturn(stmt);
+    Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
+    List<String> valStrList = valueGenStr.keySet().stream()
+            .filter(vals::contains)
+            .map(valueGenStr::get) // Get the value for each key
+            .collect(Collectors.toList());
+    Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
+
+    javaCodeBuilder.addJReturn(stmt, valueVarName.get(stmt.getOp()), valStrList);
     System.out.println("JReturn");
   }
 

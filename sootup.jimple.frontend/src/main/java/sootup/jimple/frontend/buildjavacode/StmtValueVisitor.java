@@ -321,6 +321,17 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
     public void caseVirtualInvokeExpr(JVirtualInvokeExpr expr) {
         expr.getBase().accept(this);
         expr.getArgs().forEach(args -> args.accept(this));
+        if (!valueGenStr.containsKey(expr)) {
+            int i = valueCounter++;
+            String virtualInvokeExprVarName = "virtualInvokeExpr" + i;
+            valueVarName.put(expr, virtualInvokeExprVarName);
+            String methodSigVarName = "methodSig" + i;
+            String methodSigStr = String.format("MethodSignature %s = new MethodSignature(%s, %s);",
+                    methodSigVarName, expr.getMethodSignature().getDeclClassType(), expr.getMethodSignature().getSubSignature());
+            String virtualInvokeExprStr = String.format("JVirtualInvokeExpr %s = new JVirtualInvokeExpr(%s, %s, %s);",
+                    virtualInvokeExprVarName , valueVarName.get(expr.getBase()), methodSigVarName, expr.getArgs());
+            valueGenStr.put(expr, String.join("\n", methodSigStr, virtualInvokeExprStr));
+        }
         System.out.println("caseVirtualInvokeExpr");
     }
 
