@@ -51,7 +51,7 @@ public class JavaCodeBuilder {
 
   public void createStmtGraph(Body body) {
     javaCodeObjects.add("MutableStmtGraph stmtGraph = bodyBuilder.getStmtGraph();");
-    javaCodeObjects.add(String.format("stmtGraph.setStartingStmt(%s);", body.getFirstNonIdentityStmt()));
+    javaCodeObjects.add(String.format("stmtGraph.setStartingStmt(%s);", stmtVarName.get(body.getThisStmt())));
     // loop over statements and put edges
     List<Stmt> bodyStmts = body.getStmts();
     if (!bodyStmts.isEmpty()) {
@@ -162,10 +162,15 @@ public class JavaCodeBuilder {
             stmt.getKey(), stmt.getValues()));
   }
 
-  public void addJReturnVoid(JReturnVoidStmt stmt) {
-    javaCodeObjects.add(
-        String.format(
-            "Stmt jreturnvoid = new JReturnVoidStmt(StmtPositionInfo.getNoStmtPositionInfo());"));
+  public void addJReturnVoid(JReturnVoidStmt stmt, List<String> getValueStrs) {
+    if (!stmtGenStr.containsKey(stmt)) {
+      String returnVoidVarName = "returnVoid" + stmtCounter++;
+      stmtVarName.put(stmt, returnVoidVarName);
+      javaCodeObjects.addAll(getValueStrs);
+      String returnVoidStmtStr = String.format("JReturnVoidStmt %s = new JReturnVoidStmt(StmtPositionInfo.getNoStmtPositionInfo());", returnVoidVarName);
+      stmtGenStr.put(stmt, returnVoidStmtStr);
+      javaCodeObjects.add(returnVoidStmtStr);
+    }
   }
 
   public void addIf(JIfStmt stmt) {

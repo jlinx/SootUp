@@ -41,6 +41,7 @@ import sootup.core.types.ClassType;
 import sootup.core.types.VoidType;
 import sootup.core.views.View;
 import sootup.interceptors.DeadAssignmentEliminator;
+import sootup.interceptors.TypeAssigner;
 import sootup.java.bytecode.frontend.inputlocation.JavaClassPathAnalysisInputLocation;
 import sootup.java.core.JavaIdentifierFactory;
 import sootup.java.core.JavaSootClass;
@@ -155,7 +156,7 @@ public class JimpleStringAnalysisInputLocationTest {
     String classPath = "../shared-test-resources/miniTestSuite/java6/binary";
     JavaClassPathAnalysisInputLocation inputLocation =
             new JavaClassPathAnalysisInputLocation(
-                    classPath, SourceType.Application, Collections.emptyList());
+                    classPath, SourceType.Application, Collections.singletonList(new TypeAssigner()));
     JavaView view = new JavaView(inputLocation);
     List<JavaSootClass> javaSootClassList = view.getClasses().filter(cls -> cls.getName().equals("StringConcatenation")).collect(Collectors.toList());
     // System.out.println(javaSootClassList);

@@ -267,17 +267,27 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
   @Override
   public void caseReturnVoidStmt(JReturnVoidStmt stmt) {
+    List<Value> vals = new ArrayList<>();
     if (stmt.containsArrayRef()) {
       stmt.getArrayRef().accept(stmtValueVisitor);
+      vals.add(stmt.getArrayRef());
     }
     if (stmt.containsFieldRef()) {
       stmt.getFieldRef().accept(stmtValueVisitor);
+      vals.add(stmt.getFieldRef());
     }
     if (stmt.getDef().isPresent()) {
       stmt.getDef().get().accept(stmtValueVisitor);
+      vals.add(stmt.getDef().get());
     }
 
-    javaCodeBuilder.addJReturnVoid(stmt);
+    Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
+    List<String> valStrList = valueGenStr.keySet().stream()
+            .filter(vals::contains)
+            .map(valueGenStr::get) // Get the value for each key
+            .collect(Collectors.toList());
+
+    javaCodeBuilder.addJReturnVoid(stmt, valStrList);
     System.out.println("JReturnVoid");
   }
 
