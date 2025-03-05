@@ -77,11 +77,5 @@
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.soot-oss</groupId>
-            <artifactId>sootup.java.bytecode.frontend</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 </project>

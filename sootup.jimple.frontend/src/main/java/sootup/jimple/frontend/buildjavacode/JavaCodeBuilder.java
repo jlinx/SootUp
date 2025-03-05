@@ -1,13 +1,12 @@
 package sootup.jimple.frontend.buildjavacode;
 
+import java.util.*;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.jimple.javabytecode.stmt.JEnterMonitorStmt;
 import sootup.core.jimple.javabytecode.stmt.JExitMonitorStmt;
 import sootup.core.jimple.javabytecode.stmt.JRetStmt;
 import sootup.core.jimple.javabytecode.stmt.JSwitchStmt;
 import sootup.core.model.Body;
-
-import java.util.*;
 
 public class JavaCodeBuilder {
 
@@ -51,7 +50,8 @@ public class JavaCodeBuilder {
 
   public void createStmtGraph(Body body) {
     javaCodeObjects.add("MutableStmtGraph stmtGraph = bodyBuilder.getStmtGraph();");
-    javaCodeObjects.add(String.format("stmtGraph.setStartingStmt(%s);", stmtVarName.get(body.getThisStmt())));
+    javaCodeObjects.add(
+        String.format("stmtGraph.setStartingStmt(%s);", stmtVarName.get(body.getThisStmt())));
     // loop over statements and put edges
     List<Stmt> bodyStmts = body.getStmts();
     if (!bodyStmts.isEmpty()) {
@@ -68,7 +68,8 @@ public class JavaCodeBuilder {
   }
 
   public void initJavaCode() {
-    javaCodeObjects.add("JavaView view = new JavaView(Collections.singletonList(new EagerInputLocation()));");
+    javaCodeObjects.add(
+        "JavaView view = new JavaView(Collections.singletonList(new EagerInputLocation()));");
     javaCodeObjects.add("Body.BodyBuilder bodyBuilder = Body.builder()");
     javaCodeObjects.add(
         String.format(
@@ -79,28 +80,32 @@ public class JavaCodeBuilder {
             "noStmtPositionInfo"));
   }
 
-  public void addJIdentityStmt(JIdentityStmt stmt, String localVarName, String rightOpName, List<String> getValueStrs) {
+  public void addJIdentityStmt(
+      JIdentityStmt stmt, String localVarName, String rightOpName, List<String> getValueStrs) {
     if (!stmtGenStr.containsKey(stmt)) {
       String identityVarName = "identity" + stmtCounter++;
       stmtVarName.put(stmt, identityVarName);
       javaCodeObjects.addAll(getValueStrs);
-      String identityStmtStr = String.format("JIdentityStmt %s = new JIdentityStmt(%s, %s, noStmtPositionInfo);", identityVarName, localVarName, rightOpName);
+      String identityStmtStr =
+          String.format(
+              "JIdentityStmt %s = new JIdentityStmt(%s, %s, noStmtPositionInfo);",
+              identityVarName, localVarName, rightOpName);
       stmtGenStr.put(stmt, identityStmtStr);
       javaCodeObjects.add(identityStmtStr);
     }
   }
 
-  public void addAssignment(JAssignStmt stmt, String leftOpVarName, String rightOpVarName, List<String> getValueStrs) {
+  public void addAssignment(
+      JAssignStmt stmt, String leftOpVarName, String rightOpVarName, List<String> getValueStrs) {
     if (!stmtGenStr.containsKey(stmt)) {
 
       String assignmentVarName = "assignment" + stmtCounter++;
       stmtVarName.put(stmt, assignmentVarName);
       javaCodeObjects.addAll(getValueStrs);
-      String assignmentStmtStr = String.format(
+      String assignmentStmtStr =
+          String.format(
               "JAssignStmt %s = JavaJimple.newAssignment(%s, %s , noStmtPositionInfo)",
-              assignmentVarName,
-              leftOpVarName,
-              rightOpVarName);
+              assignmentVarName, leftOpVarName, rightOpVarName);
       stmtGenStr.put(stmt, assignmentStmtStr);
       javaCodeObjects.add(assignmentStmtStr);
     }
@@ -111,7 +116,9 @@ public class JavaCodeBuilder {
       String invokeVarName = "invoke" + stmtCounter++;
       stmtVarName.put(stmt, invokeVarName);
       javaCodeObjects.addAll(getValueStrs);
-      String invokeStmtStr = String.format("JInvokeStmt %s = new JInvokeStmt(%s, noStmtPositionInfo);",
+      String invokeStmtStr =
+          String.format(
+              "JInvokeStmt %s = new JInvokeStmt(%s, noStmtPositionInfo);",
               invokeVarName, exprVarName);
       stmtGenStr.put(stmt, invokeStmtStr);
       javaCodeObjects.add(invokeStmtStr);
@@ -141,8 +148,9 @@ public class JavaCodeBuilder {
       stmtVarName.put(stmt, returnVarName);
       javaCodeObjects.addAll(getValueStrs);
 
-      String returnStmtStr = String.format("JReturn %s = new JReturn(%s, noStmtPositionInfo);",
-              returnVarName, returnOpVarName);
+      String returnStmtStr =
+          String.format(
+              "JReturn %s = new JReturn(%s, noStmtPositionInfo);", returnVarName, returnOpVarName);
       stmtGenStr.put(stmt, returnStmtStr);
       javaCodeObjects.add(returnStmtStr);
     }
@@ -167,7 +175,10 @@ public class JavaCodeBuilder {
       String returnVoidVarName = "returnVoid" + stmtCounter++;
       stmtVarName.put(stmt, returnVoidVarName);
       javaCodeObjects.addAll(getValueStrs);
-      String returnVoidStmtStr = String.format("JReturnVoidStmt %s = new JReturnVoidStmt(StmtPositionInfo.getNoStmtPositionInfo());", returnVoidVarName);
+      String returnVoidStmtStr =
+          String.format(
+              "JReturnVoidStmt %s = new JReturnVoidStmt(StmtPositionInfo.getNoStmtPositionInfo());",
+              returnVoidVarName);
       stmtGenStr.put(stmt, returnVoidStmtStr);
       javaCodeObjects.add(returnVoidStmtStr);
     }

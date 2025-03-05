@@ -1,5 +1,7 @@
 package sootup.jimple.frontend.buildjavacode;
 
+import java.util.*;
+import java.util.stream.Collectors;
 import sootup.core.jimple.basic.LValue;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
@@ -10,9 +12,6 @@ import sootup.core.jimple.javabytecode.stmt.*;
 import sootup.core.jimple.visitor.StmtVisitor;
 import sootup.core.jimple.visitor.Visitor;
 import sootup.core.model.Body;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
@@ -58,7 +57,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
       stmt.getFieldRef().accept(stmtValueVisitor);
       vals.add(stmt.getFieldRef());
     }
-    if (stmt.containsInvokeExpr()){
+    if (stmt.containsInvokeExpr()) {
       stmt.getInvokeExpr().get().accept(stmtValueVisitor);
       AbstractInvokeExpr invokeExpr = stmt.getInvokeExpr().get();
       vals.add(invokeExpr);
@@ -69,12 +68,13 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
 
     Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
-    List<String> valStrList = valueGenStr.keySet().stream()
+    List<String> valStrList =
+        valueGenStr.keySet().stream()
             .filter(vals::contains)
             .map(valueGenStr::get) // Get the value for each key
             .collect(Collectors.toList());
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
-    javaCodeBuilder.addInvoke(stmt, valueVarName.get(stmt.getInvokeExpr().get()) ,valStrList);
+    javaCodeBuilder.addInvoke(stmt, valueVarName.get(stmt.getInvokeExpr().get()), valStrList);
 
     System.out.println("Invoke");
   }
@@ -87,7 +87,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     if (stmt.containsFieldRef()) {
       stmt.getFieldRef().accept(stmtValueVisitor);
     }
-    if (stmt.containsInvokeExpr()){
+    if (stmt.containsInvokeExpr()) {
       stmt.getInvokeExpr().get().accept(stmtValueVisitor);
     }
 
@@ -98,13 +98,15 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
     Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
     List<Value> vals = Arrays.asList(leftOp, rightOp);
-    List<String> valStrList = valueGenStr.keySet().stream()
+    List<String> valStrList =
+        valueGenStr.keySet().stream()
             .filter(vals::contains)
             .map(valueGenStr::get) // Get the value for each key
             .collect(Collectors.toList());
 
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
-    javaCodeBuilder.addAssignment(stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
+    javaCodeBuilder.addAssignment(
+        stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
     System.out.println("Assignment");
   }
 
@@ -127,12 +129,14 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
 
     List<Value> vals = Arrays.asList(leftOp, rightOp);
-    List<String> valStrList = valueGenStr.keySet().stream()
+    List<String> valStrList =
+        valueGenStr.keySet().stream()
             .filter(vals::contains)
             .map(valueGenStr::get) // Get the value for each key
             .collect(Collectors.toList());
 
-    javaCodeBuilder.addJIdentityStmt(stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
+    javaCodeBuilder.addJIdentityStmt(
+        stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
     System.out.println("Identity");
   }
 
@@ -255,7 +259,8 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     vals.add(stmt.getOp());
 
     Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
-    List<String> valStrList = valueGenStr.keySet().stream()
+    List<String> valStrList =
+        valueGenStr.keySet().stream()
             .filter(vals::contains)
             .map(valueGenStr::get) // Get the value for each key
             .collect(Collectors.toList());
@@ -282,7 +287,8 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
 
     Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
-    List<String> valStrList = valueGenStr.keySet().stream()
+    List<String> valStrList =
+        valueGenStr.keySet().stream()
             .filter(vals::contains)
             .map(valueGenStr::get) // Get the value for each key
             .collect(Collectors.toList());
