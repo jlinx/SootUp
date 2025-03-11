@@ -3,6 +3,8 @@ package sootup.jimple.frontend.buildjavacode;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
 import sootup.core.jimple.common.constant.*;
@@ -13,6 +15,7 @@ import sootup.core.jimple.visitor.Visitor;
 
 public class StmtValueVisitor implements ValueVisitor, Visitor {
 
+  public static final Logger logger = LoggerFactory.getLogger(StmtValueVisitor.class);
   private final Map<Value, String> valueGenStr = new HashMap<>();
   private final Map<Value, String> valueVarName = new HashMap<>();
   static int valueCounter = 1;
@@ -27,7 +30,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
 
   @Override
   public void defaultCaseValue(@Nonnull Value v) {
-    System.out.println("defaultCaseValue");
+    logger.debug("defaultCaseValue");
   }
 
   @Override
@@ -41,7 +44,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               localVarName, local.getName(), local.getType());
       valueGenStr.put(local, localStr);
     }
-    System.out.println("caseLocal");
+    logger.debug("caseLocal");
   }
 
   @Override
@@ -53,7 +56,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
           String.format("BooleanConstant %s = new BooleanConstant(%s);", boolVarName, constant);
       valueGenStr.put(constant, boolConstStr);
     }
-    System.out.println("caseBooleanConstant");
+    logger.debug("caseBooleanConstant");
   }
 
   @Override
@@ -67,7 +70,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               doubleVarName, constant.getValue());
       valueGenStr.put(constant, doubleConstStr);
     }
-    System.out.println("caseDoubleConstant");
+    logger.debug("caseDoubleConstant");
   }
 
   @Override
@@ -81,7 +84,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               floatVarName, constant.getValue());
       valueGenStr.put(constant, floatConstStr);
     }
-    System.out.println("caseFloatConstant");
+    logger.debug("caseFloatConstant");
   }
 
   @Override
@@ -94,7 +97,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               "IntConstant %s = IntConstant.getInstance(%s);", intVarName, constant.getValue());
       valueGenStr.put(constant, intConstStr);
     }
-    System.out.println("caseIntConstant");
+    logger.debug("caseIntConstant");
   }
 
   @Override
@@ -107,7 +110,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               "LongConstant %s = LongConstant.getInstance(%s);", longVarName, constant.getValue());
       valueGenStr.put(constant, longConstStr);
     }
-    System.out.println("caseLongConstant");
+    logger.debug("caseLongConstant");
   }
 
   @Override
@@ -119,7 +122,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
           String.format("NullConstant %s = NullConstant.getInstance();", nullVarName);
       valueGenStr.put(constant, nullConstStr);
     }
-    System.out.println("caseNullConstant");
+    logger.debug("caseNullConstant");
   }
 
   @Override
@@ -133,7 +136,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               strVarName, constant.getValue());
       valueGenStr.put(constant, strConstStr);
     }
-    System.out.println("caseStringConstant");
+    logger.debug("caseStringConstant");
   }
 
   @Override
@@ -147,7 +150,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               enumVarName, constant.getValue());
       valueGenStr.put(constant, enumConstStr);
     }
-    System.out.println("caseEnumConstant");
+    logger.debug("caseEnumConstant");
   }
 
   @Override
@@ -161,7 +164,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               clsVarName, constant.getValue());
       valueGenStr.put(constant, classConstStr);
     }
-    System.out.println("caseClassConstant");
+    logger.debug("caseClassConstant");
   }
 
   @Override
@@ -175,7 +178,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               methodHandleVarName, handle.getReferenceSignature(), handle.getKind().toString());
       valueGenStr.put(handle, methodHandleStr);
     }
-    System.out.println("caseMethodHandle");
+    logger.debug("caseMethodHandle");
   }
 
   @Override
@@ -189,159 +192,159 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               methodTypeVarName, methodType.getReturnType(), methodType.hashCode());
       valueGenStr.put(methodType, methodTypeStr);
     }
-    System.out.println("caseMethodType");
+    logger.debug("caseMethodType");
   }
 
   @Override
   public void defaultCaseConstant(@Nonnull Constant constant) {
-    System.out.println("defaultCaseConstant");
+    logger.debug("defaultCaseConstant");
   }
 
   @Override
   public void caseAddExpr(JAddExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseAddExpr");
+    logger.debug("caseAddExpr");
   }
 
   @Override
   public void caseAndExpr(JAndExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseAndExpr");
+    logger.debug("caseAndExpr");
   }
 
   @Override
   public void caseCmpExpr(JCmpExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseCmpExpr");
+    logger.debug("caseCmpExpr");
   }
 
   @Override
   public void caseCmpgExpr(JCmpgExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseCmpgExpr");
+    logger.debug("caseCmpgExpr");
   }
 
   @Override
   public void caseCmplExpr(JCmplExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseCmplExpr");
+    logger.debug("caseCmplExpr");
   }
 
   @Override
   public void caseDivExpr(JDivExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseDivExpr");
+    logger.debug("caseDivExpr");
   }
 
   @Override
   public void caseEqExpr(JEqExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseEqExpr");
+    logger.debug("caseEqExpr");
   }
 
   @Override
   public void caseNeExpr(JNeExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseNeExpr");
+    logger.debug("caseNeExpr");
   }
 
   @Override
   public void caseGeExpr(JGeExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseGeExpr");
+    logger.debug("caseGeExpr");
   }
 
   @Override
   public void caseGtExpr(JGtExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseGtExpr");
+    logger.debug("caseGtExpr");
   }
 
   @Override
   public void caseLeExpr(JLeExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseLeExpr");
+    logger.debug("caseLeExpr");
   }
 
   @Override
   public void caseLtExpr(JLtExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseLtExpr");
+    logger.debug("caseLtExpr");
   }
 
   @Override
   public void caseMulExpr(JMulExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseMulExpr");
+    logger.debug("caseMulExpr");
   }
 
   @Override
   public void caseOrExpr(JOrExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseOrExpr");
+    logger.debug("caseOrExpr");
   }
 
   @Override
   public void caseRemExpr(JRemExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseRemExpr");
+    logger.debug("caseRemExpr");
   }
 
   @Override
   public void caseShlExpr(JShlExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseShlExpr");
+    logger.debug("caseShlExpr");
   }
 
   @Override
   public void caseShrExpr(JShrExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseShrExpr");
+    logger.debug("caseShrExpr");
   }
 
   @Override
   public void caseUshrExpr(JUshrExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseUshrExpr");
+    logger.debug("caseUshrExpr");
   }
 
   @Override
   public void caseSubExpr(JSubExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseSubExpr");
+    logger.debug("caseSubExpr");
   }
 
   @Override
   public void caseXorExpr(JXorExpr expr) {
     expr.getOp1().accept(this);
     expr.getOp2().accept(this);
-    System.out.println("caseXorExpr");
+    logger.debug("caseXorExpr");
   }
 
   @Override
   public void caseSpecialInvokeExpr(JSpecialInvokeExpr expr) {
     expr.getBase().accept(this);
     expr.getArgs().forEach(args -> args.accept(this));
-    System.out.println("caseSpecialInvokeExpr");
+    logger.debug("caseSpecialInvokeExpr");
   }
 
   @Override
@@ -368,79 +371,79 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               expr.getArgs());
       valueGenStr.put(expr, String.join("\n", methodSigStr, virtualInvokeExprStr));
     }
-    System.out.println("caseVirtualInvokeExpr");
+    logger.debug("caseVirtualInvokeExpr");
   }
 
   @Override
   public void caseInterfaceInvokeExpr(JInterfaceInvokeExpr expr) {
     expr.getBase().accept(this);
     expr.getArgs().forEach(args -> args.accept(this));
-    System.out.println("caseInterfaceInvokeExpr");
+    logger.debug("caseInterfaceInvokeExpr");
   }
 
   @Override
   public void caseStaticInvokeExpr(JStaticInvokeExpr expr) {
     expr.getArgs().forEach(args -> args.accept(this));
-    System.out.println("caseStaticInvokeExpr");
+    logger.debug("caseStaticInvokeExpr");
   }
 
   @Override
   public void caseDynamicInvokeExpr(JDynamicInvokeExpr expr) {
     expr.getBootstrapArgs().forEach(bootargs -> bootargs.accept(this));
     expr.getArgs().forEach(args -> args.accept(this));
-    System.out.println("caseDynamicInvokeExpr");
+    logger.debug("caseDynamicInvokeExpr");
   }
 
   @Override
   public void caseCastExpr(JCastExpr expr) {
     expr.getOp().accept(this);
-    System.out.println("caseCastExpr");
+    logger.debug("caseCastExpr");
   }
 
   @Override
   public void caseInstanceOfExpr(JInstanceOfExpr expr) {
     expr.getOp().accept(this);
-    System.out.println("caseInstanceOfExpr");
+    logger.debug("caseInstanceOfExpr");
   }
 
   @Override
   public void caseNewArrayExpr(JNewArrayExpr expr) {
     expr.getSize().accept(this);
-    System.out.println("caseNewArrayExpr");
+    logger.debug("caseNewArrayExpr");
   }
 
   @Override
   public void caseNewMultiArrayExpr(JNewMultiArrayExpr expr) {
     expr.getSizes().forEach(size -> size.accept(this));
-    System.out.println("caseNewMultiArrayExpr");
+    logger.debug("caseNewMultiArrayExpr");
   }
 
   @Override
   public void caseNewExpr(JNewExpr expr) {
-    System.out.println("caseNewExpr");
+    logger.debug("caseNewExpr");
   }
 
   @Override
   public void caseLengthExpr(JLengthExpr expr) {
     expr.getOp().accept(this);
-    System.out.println("caseLengthExpr");
+    logger.debug("caseLengthExpr");
   }
 
   @Override
   public void caseNegExpr(JNegExpr expr) {
     expr.getOp().accept(this);
-    System.out.println("caseNegExpr");
+    logger.debug("caseNegExpr");
   }
 
   @Override
   public void casePhiExpr(JPhiExpr v) {
     v.getArgs().forEach(arg -> arg.accept(this));
-    System.out.println("casePhiExpr");
+    logger.debug("casePhiExpr");
   }
 
   @Override
   public void defaultCaseExpr(Expr expr) {
-    System.out.println("defaultCaseExpr");
+    logger.debug("defaultCaseExpr");
   }
 
   @Override
@@ -463,20 +466,20 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               staticFieldRefVarName, fieldSigVarName);
       valueGenStr.put(ref, String.join("\n", fieldSigStr, staticFieldRefStr));
     }
-    System.out.println("caseStaticFieldRef");
+    logger.debug("caseStaticFieldRef");
   }
 
   @Override
   public void caseInstanceFieldRef(JInstanceFieldRef ref) {
     ref.getBase().accept(this);
-    System.out.println("caseInstanceFieldRef");
+    logger.debug("caseInstanceFieldRef");
   }
 
   @Override
   public void caseArrayRef(JArrayRef ref) {
     ref.getBase().accept(this);
     ref.getIndex().accept(this);
-    System.out.println("caseArrayRef");
+    logger.debug("caseArrayRef");
   }
 
   @Override
@@ -490,7 +493,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               parameterRefVarName, ref.getType(), ref.getIndex());
       valueGenStr.put(ref, parameterRefStr);
     }
-    System.out.println("caseParameterRef");
+    logger.debug("caseParameterRef");
   }
 
   @Override
@@ -504,7 +507,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
               caughtExceptionRefVarName);
       valueGenStr.put(ref, caughtExceptionRefStr);
     }
-    System.out.println("caseCaughtExceptionRef");
+    logger.debug("caseCaughtExceptionRef");
   }
 
   @Override
@@ -514,15 +517,15 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
       valueVarName.put(ref, thisRefVarName);
       String thisRefStr =
           String.format(
-              "JThisRef %s = new JThisRef(JavaIdentifierFactory.getInstance().getType(\"%s\"));",
+              "JThisRef %s = new JThisRef(JavaIdentifierFactory.getInstance().getClassType(\"%s\"));",
               thisRefVarName, ref.getType());
       valueGenStr.put(ref, thisRefStr);
     }
-    System.out.println("caseThisRef");
+    logger.debug("caseThisRef");
   }
 
   @Override
   public void defaultCaseRef(Ref ref) {
-    System.out.println("defaultCaseRef");
+    logger.debug("defaultCaseRef");
   }
 }

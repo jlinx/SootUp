@@ -64,13 +64,14 @@ public class JavaCodeBuilder {
         javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, %s);", outNode, inNode));
         previous = current;
       }
+      javaCodeObjects.add("return stmtGraph.toString();");
     }
   }
 
   public void initJavaCode() {
     javaCodeObjects.add(
         "JavaView view = new JavaView(Collections.singletonList(new EagerInputLocation()));");
-    javaCodeObjects.add("Body.BodyBuilder bodyBuilder = Body.builder()");
+    javaCodeObjects.add("Body.BodyBuilder bodyBuilder = Body.builder();");
     javaCodeObjects.add(
         String.format(
             "JavaIdentifierFactory %s = JavaIdentifierFactory.getInstance();", "factory"));
@@ -104,7 +105,7 @@ public class JavaCodeBuilder {
       javaCodeObjects.addAll(getValueStrs);
       String assignmentStmtStr =
           String.format(
-              "JAssignStmt %s = JavaJimple.newAssignment(%s, %s , noStmtPositionInfo)",
+              "JAssignStmt %s = JavaJimple.newAssignStmt(%s, %s , noStmtPositionInfo);",
               assignmentVarName, leftOpVarName, rightOpVarName);
       stmtGenStr.put(stmt, assignmentStmtStr);
       javaCodeObjects.add(assignmentStmtStr);

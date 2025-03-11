@@ -2,6 +2,8 @@ package sootup.jimple.frontend.buildjavacode;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sootup.core.jimple.basic.LValue;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
@@ -14,6 +16,8 @@ import sootup.core.jimple.visitor.Visitor;
 import sootup.core.model.Body;
 
 public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
+
+  public static final Logger logger = LoggerFactory.getLogger(JavaCodeStmtVisitor.class);
 
   StmtValueVisitor stmtValueVisitor = new StmtValueVisitor();
 
@@ -43,7 +47,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
       stmt.getDef().get().accept(stmtValueVisitor);
     }
 
-    System.out.println("JBreakPoint");
+    logger.debug("JBreakPoint");
   }
 
   @Override
@@ -76,7 +80,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
     javaCodeBuilder.addInvoke(stmt, valueVarName.get(stmt.getInvokeExpr().get()), valStrList);
 
-    System.out.println("Invoke");
+    logger.debug("Invoke");
   }
 
   @Override
@@ -107,7 +111,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
     javaCodeBuilder.addAssignment(
         stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
-    System.out.println("Assignment");
+    logger.debug("Assignment");
   }
 
   @Override
@@ -137,7 +141,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
     javaCodeBuilder.addJIdentityStmt(
         stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
-    System.out.println("Identity");
+    logger.debug("Identity");
   }
 
   @Override
@@ -154,7 +158,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     stmt.getOp().accept(stmtValueVisitor);
 
     javaCodeBuilder.addJEnterMonitor(stmt);
-    System.out.println("JEnterMonitor");
+    logger.debug("JEnterMonitor");
   }
 
   @Override
@@ -171,7 +175,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     stmt.getOp().accept(stmtValueVisitor);
 
     javaCodeBuilder.addJExitMonitor(stmt);
-    System.out.println("JExitMonitor");
+    logger.debug("JExitMonitor");
   }
 
   @Override
@@ -187,7 +191,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
 
     javaCodeBuilder.addGoto(stmt);
-    System.out.println("JGoto");
+    logger.debug("JGoto");
   }
 
   @Override
@@ -204,7 +208,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     stmt.getCondition().accept(stmtValueVisitor);
 
     javaCodeBuilder.addIf(stmt);
-    System.out.println("JIfStmt");
+    logger.debug("JIfStmt");
   }
 
   @Override
@@ -220,7 +224,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
 
     javaCodeBuilder.addNop(stmt);
-    System.out.println("JNop");
+    logger.debug("JNop");
   }
 
   @Override
@@ -237,7 +241,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     stmt.getStmtAddress().accept(stmtValueVisitor);
 
     javaCodeBuilder.addJRet(stmt);
-    System.out.println("JRet");
+    logger.debug("JRet");
   }
 
   @Override
@@ -267,7 +271,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
 
     javaCodeBuilder.addJReturn(stmt, valueVarName.get(stmt.getOp()), valStrList);
-    System.out.println("JReturn");
+    logger.debug("JReturn");
   }
 
   @Override
@@ -294,7 +298,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
             .collect(Collectors.toList());
 
     javaCodeBuilder.addJReturnVoid(stmt, valStrList);
-    System.out.println("JReturnVoid");
+    logger.debug("JReturnVoid");
   }
 
   @Override
@@ -312,7 +316,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     stmt.getValues().forEach(val -> val.accept(stmtValueVisitor));
 
     javaCodeBuilder.addJSwitch(stmt);
-    System.out.println("JSwitch");
+    logger.debug("JSwitch");
   }
 
   @Override
@@ -329,7 +333,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     stmt.getOp().accept(stmtValueVisitor);
 
     javaCodeBuilder.addJThrow(stmt);
-    System.out.println("JThrow");
+    logger.debug("JThrow");
   }
 
   @Override
@@ -344,6 +348,6 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
       stmt.getDef().get().accept(stmtValueVisitor);
     }
 
-    System.out.println("Stmt");
+    logger.debug("Stmt");
   }
 }
