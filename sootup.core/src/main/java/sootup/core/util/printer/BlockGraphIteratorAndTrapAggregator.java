@@ -18,7 +18,7 @@ import sootup.core.types.ClassType;
 
 /*-
  * #%L
- * Soot
+ * SootUp
  * %%
  * Copyright (C) 2024 Sahil Agichani
  * %%

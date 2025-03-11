@@ -11,7 +11,7 @@ import sootup.core.util.DotExporter;
 
 /*-
  * #%L
- * Soot
+ * SootUp
  * %%
  * Copyright (C) 2024 Sahil Agichani
  * %%

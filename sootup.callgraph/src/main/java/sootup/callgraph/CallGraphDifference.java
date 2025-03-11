@@ -8,7 +8,7 @@ import sootup.core.signatures.MethodSignature;
 
 /*-
  * #%L
- * Soot
+ * SootUp
  * %%
  * Copyright (C) 2024 Sahil Agichani
  * %%

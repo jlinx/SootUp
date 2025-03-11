@@ -2,7 +2,7 @@ package sootup.core.transform;
 
 /*-
  * #%L
- * Soot - a J*va Optimization Framework
+ * SootUp - a J*va Optimization Framework
  * %%
  * Copyright (C) 2024 Sahil Agichani
  * %%
