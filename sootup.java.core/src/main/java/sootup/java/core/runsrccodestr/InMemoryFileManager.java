@@ -1,4 +1,4 @@
-package sootup.java.bytecode.frontend.runstrcode;
+package sootup.java.core.runsrccodestr;
 
 /*-
  * #%L

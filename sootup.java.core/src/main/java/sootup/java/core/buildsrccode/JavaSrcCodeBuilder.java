@@ -1,4 +1,4 @@
-package sootup.jimple.frontend.buildjavacode;
+package sootup.java.core.buildsrccode;
 
 /*-
  * #%L
@@ -30,7 +30,7 @@ import sootup.core.jimple.javabytecode.stmt.JRetStmt;
 import sootup.core.jimple.javabytecode.stmt.JSwitchStmt;
 import sootup.core.model.Body;
 
-public class JavaCodeBuilder {
+public class JavaSrcCodeBuilder {
 
   private final Set<String> javaCodeObjects = new LinkedHashSet<>();
   Map<Stmt, String> stmtGenStr = new HashMap<>();
@@ -45,29 +45,12 @@ public class JavaCodeBuilder {
     return stmtVarName;
   }
 
-  public JavaCodeBuilder(Body body) {
+  public JavaSrcCodeBuilder(Body body) {
     this.initJavaCode();
-    // this.createMethod();
-    // this.createClass();
   }
 
   public Set<String> getJavaCodeObjects() {
     return javaCodeObjects;
-  }
-
-  public void createClass() {
-    JavaCodeClassSpec javaCodeClassSpec = new JavaCodeClassSpec();
-    javaCodeClassSpec.addModifier("public");
-    String classString = javaCodeClassSpec.build();
-    javaCodeObjects.add(classString);
-  }
-
-  public void createMethod() {
-    JavaCodeMethodSpec javaCodeMethodSpec = new JavaCodeMethodSpec();
-    javaCodeMethodSpec.addMethodSignature("dummyMain", "main", "void", "Collections.empty()");
-    javaCodeMethodSpec.addModifier("public").addModifier("static");
-    String methodStr = javaCodeMethodSpec.build();
-    javaCodeObjects.add(methodStr);
   }
 
   public void createStmtGraph(Body body) {

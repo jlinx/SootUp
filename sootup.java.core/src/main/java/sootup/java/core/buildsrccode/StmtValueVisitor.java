@@ -1,4 +1,4 @@
-package sootup.jimple.frontend.buildjavacode;
+package sootup.java.core.buildsrccode;
 
 /*-
  * #%L

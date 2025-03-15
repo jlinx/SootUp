@@ -1,4 +1,4 @@
-package sootup.jimple.frontend.buildjavacode;
+package sootup.java.core.runsrccodestr;
 
 /*-
  * #%L
@@ -22,30 +22,25 @@ package sootup.jimple.frontend.buildjavacode;
  * #L%
  */
 
-public class JavaCodeStmtSpec {
-  private final String stmt;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import javax.tools.SimpleJavaFileObject;
 
-  private JavaCodeStmtSpec(String stmt) {
-    this.stmt = stmt;
+public class JavaClassAsBytes extends SimpleJavaFileObject {
+
+  protected ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+  public JavaClassAsBytes(String name, Kind kind) {
+    super(URI.create("string:///" + name.replace('.', '/') + kind.extension), kind);
   }
 
-  public static JavaCodeStmtSpec identity(String variable, String type) {
-    return new JavaCodeStmtSpec(variable + " := @" + type);
+  public byte[] getBytes() {
+    return bos.toByteArray();
   }
 
-  public static JavaCodeStmtSpec assign(String variable, String value) {
-    return new JavaCodeStmtSpec(variable + " = " + value + ";");
-  }
-
-  public static JavaCodeStmtSpec ifStmt(String condition) {
-    return new JavaCodeStmtSpec("if (" + condition + ") {");
-  }
-
-  public static JavaCodeStmtSpec endBlock() {
-    return new JavaCodeStmtSpec("}");
-  }
-
-  public String build() {
-    return stmt;
+  @Override
+  public OutputStream openOutputStream() {
+    return bos;
   }
 }

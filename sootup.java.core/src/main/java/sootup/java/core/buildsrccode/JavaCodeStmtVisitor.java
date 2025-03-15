@@ -1,4 +1,4 @@
-package sootup.jimple.frontend.buildjavacode;
+package sootup.java.core.buildsrccode;
 
 /*-
  * #%L
@@ -43,18 +43,18 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
   StmtValueVisitor stmtValueVisitor = new StmtValueVisitor();
 
-  private final JavaCodeBuilder javaCodeBuilder;
+  private final JavaSrcCodeBuilder javaSrcCodeBuilder;
 
   public JavaCodeStmtVisitor(Body body) {
-    this.javaCodeBuilder = new JavaCodeBuilder(body);
+    this.javaSrcCodeBuilder = new JavaSrcCodeBuilder(body);
   }
 
   public void createStmtGraph(Body body) {
-    javaCodeBuilder.createStmtGraph(body);
+    javaSrcCodeBuilder.createStmtGraph(body);
   }
 
   public Set<String> getJavaCodeObjects() {
-    return javaCodeBuilder.getJavaCodeObjects();
+    return javaSrcCodeBuilder.getJavaCodeObjects();
   }
 
   @Override
@@ -100,7 +100,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
             .map(valueGenStr::get) // Get the value for each key
             .collect(Collectors.toList());
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
-    javaCodeBuilder.addInvoke(stmt, valueVarName.get(stmt.getInvokeExpr().get()), valStrList);
+    javaSrcCodeBuilder.addInvoke(stmt, valueVarName.get(stmt.getInvokeExpr().get()), valStrList);
 
     logger.debug("Invoke");
   }
@@ -131,7 +131,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
             .collect(Collectors.toList());
 
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
-    javaCodeBuilder.addAssignment(
+    javaSrcCodeBuilder.addAssignment(
         stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
     logger.debug("Assignment");
   }
@@ -161,7 +161,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
             .map(valueGenStr::get) // Get the value for each key
             .collect(Collectors.toList());
 
-    javaCodeBuilder.addJIdentityStmt(
+    javaSrcCodeBuilder.addJIdentityStmt(
         stmt, valueVarName.get(leftOp), valueVarName.get(rightOp), valStrList);
     logger.debug("Identity");
   }
@@ -179,7 +179,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
     stmt.getOp().accept(stmtValueVisitor);
 
-    javaCodeBuilder.addJEnterMonitor(stmt);
+    javaSrcCodeBuilder.addJEnterMonitor(stmt);
     logger.debug("JEnterMonitor");
   }
 
@@ -196,7 +196,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
     stmt.getOp().accept(stmtValueVisitor);
 
-    javaCodeBuilder.addJExitMonitor(stmt);
+    javaSrcCodeBuilder.addJExitMonitor(stmt);
     logger.debug("JExitMonitor");
   }
 
@@ -212,7 +212,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
       stmt.getDef().get().accept(stmtValueVisitor);
     }
 
-    javaCodeBuilder.addGoto(stmt);
+    javaSrcCodeBuilder.addGoto(stmt);
     logger.debug("JGoto");
   }
 
@@ -229,7 +229,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
     stmt.getCondition().accept(stmtValueVisitor);
 
-    javaCodeBuilder.addIf(stmt);
+    javaSrcCodeBuilder.addIf(stmt);
     logger.debug("JIfStmt");
   }
 
@@ -245,7 +245,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
       stmt.getDef().get().accept(stmtValueVisitor);
     }
 
-    javaCodeBuilder.addNop(stmt);
+    javaSrcCodeBuilder.addNop(stmt);
     logger.debug("JNop");
   }
 
@@ -262,7 +262,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
     stmt.getStmtAddress().accept(stmtValueVisitor);
 
-    javaCodeBuilder.addJRet(stmt);
+    javaSrcCodeBuilder.addJRet(stmt);
     logger.debug("JRet");
   }
 
@@ -292,7 +292,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
             .collect(Collectors.toList());
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
 
-    javaCodeBuilder.addJReturn(stmt, valueVarName.get(stmt.getOp()), valStrList);
+    javaSrcCodeBuilder.addJReturn(stmt, valueVarName.get(stmt.getOp()), valStrList);
     logger.debug("JReturn");
   }
 
@@ -319,7 +319,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
             .map(valueGenStr::get) // Get the value for each key
             .collect(Collectors.toList());
 
-    javaCodeBuilder.addJReturnVoid(stmt, valStrList);
+    javaSrcCodeBuilder.addJReturnVoid(stmt, valStrList);
     logger.debug("JReturnVoid");
   }
 
@@ -337,7 +337,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     stmt.getKey().accept(stmtValueVisitor);
     stmt.getValues().forEach(val -> val.accept(stmtValueVisitor));
 
-    javaCodeBuilder.addJSwitch(stmt);
+    javaSrcCodeBuilder.addJSwitch(stmt);
     logger.debug("JSwitch");
   }
 
@@ -354,7 +354,7 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     }
     stmt.getOp().accept(stmtValueVisitor);
 
-    javaCodeBuilder.addJThrow(stmt);
+    javaSrcCodeBuilder.addJThrow(stmt);
     logger.debug("JThrow");
   }
 

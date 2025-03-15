@@ -1,4 +1,4 @@
-package sootup.java.bytecode.frontend.runstrcode;
+package sootup.java.core.runsrccodestr;
 
 /*-
  * #%L
@@ -22,20 +22,26 @@ package sootup.java.bytecode.frontend.runstrcode;
  * #L%
  */
 
-import java.net.URI;
+import java.util.Map;
 import java.util.Objects;
-import javax.tools.SimpleJavaFileObject;
 
-public class JavaSrcCodeFromString extends SimpleJavaFileObject {
-  private String sourceCode;
+public class InMemoryClassLoader extends ClassLoader {
 
-  public JavaSrcCodeFromString(String name, String sourceCode) {
-    super(URI.create("string:///" + name.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
-    this.sourceCode = Objects.requireNonNull(sourceCode, "sourceCode must not be null");
+  private InMemoryFileManager manager;
+
+  public InMemoryClassLoader(ClassLoader parent, InMemoryFileManager manager) {
+    super(parent);
+    this.manager = Objects.requireNonNull(manager, "manager must not be null");
   }
 
   @Override
-  public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-    return sourceCode;
+  protected Class<?> findClass(String name) throws ClassNotFoundException {
+    Map<String, JavaClassAsBytes> compiledClasses = manager.getBytesMap();
+    if (compiledClasses.containsKey(name)) {
+      byte[] bytes = compiledClasses.get(name).getBytes();
+      return defineClass(name, bytes, 0, bytes.length);
+    } else {
+      throw new ClassNotFoundException();
+    }
   }
 }

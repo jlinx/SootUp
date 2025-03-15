@@ -1,4 +1,4 @@
-package sootup.java.bytecode.frontend.runstrcode;
+package sootup.java.bytecode.frontend.runsrccodestr;
 
 /*-
  * #%L
@@ -44,14 +44,17 @@ import sootup.interceptors.TypeAssigner;
 import sootup.java.bytecode.frontend.inputlocation.JavaClassPathAnalysisInputLocation;
 import sootup.java.core.JavaSootClass;
 import sootup.java.core.JavaSootMethod;
+import sootup.java.core.buildsrccode.JavaCodeStmtVisitor;
+import sootup.java.core.runsrccodestr.InMemoryClass;
+import sootup.java.core.runsrccodestr.InMemoryFileManager;
+import sootup.java.core.runsrccodestr.JavaSrcCodeFromString;
 import sootup.java.core.views.JavaView;
-import sootup.jimple.frontend.buildjavacode.JavaCodeStmtVisitor;
 
 @Tag(TestCategories.JAVA_8_CATEGORY)
-public class JavaCodeBuilderTest {
+public class JavaSrcCodeBuilderTest {
 
   @Test
-  public void testSootClassToJavaObjectPrinter()
+  public void testStmtGraphToJavaSrcCodeObjectsPrinter()
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     String classPath = "../shared-test-resources/miniTestSuite/java6/binary";
     JavaClassPathAnalysisInputLocation inputLocation =
@@ -92,7 +95,7 @@ public class JavaCodeBuilderTest {
     String dynamicStr = String.join("\n", javaCodeObjects);
     ;
     String sourceCode =
-        "package sootup.java.bytecode.frontend.runstrcode;\n"
+        "package sootup.java.bytecode.frontend.runsrccodestr;\n"
             + "import java.util.*;\n"
             + "import sootup.core.graph.*;\n"
             + "import sootup.core.inputlocation.*;\n"
@@ -104,6 +107,7 @@ public class JavaCodeBuilderTest {
             + "import sootup.java.core.JavaIdentifierFactory;\n"
             + "import sootup.java.core.language.JavaJimple;\n"
             + "import sootup.java.core.views.JavaView;\n"
+            + "import sootup.java.core.runsrccodestr.InMemoryClass;\n"
             + "public class TestClass implements InMemoryClass {\n"
             + "@Override\n"
             + "    public String runCode() {\n"
@@ -112,7 +116,7 @@ public class JavaCodeBuilderTest {
             + "\n"
             + "    }\n"
             + "}\n";
-    String qualifiedClassName = "sootup.java.bytecode.frontend.runstrcode.TestClass";
+    String qualifiedClassName = "sootup.java.bytecode.frontend.runsrccodestr.TestClass";
 
     org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
