@@ -156,7 +156,8 @@ public class JavaSrcCodeBuilder {
 
       String returnStmtStr =
           String.format(
-              "JReturn %s = new JReturn(%s, noStmtPositionInfo);", returnVarName, returnOpVarName);
+              "JReturnStmt %s = new JReturnStmt(%s, noStmtPositionInfo);",
+              returnVarName, returnOpVarName);
       stmtGenStr.put(stmt, returnStmtStr);
       javaCodeObjects.add(returnStmtStr);
     }

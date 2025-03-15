@@ -24,10 +24,12 @@ package sootup.jimple.frontend;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.ToolProvider;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import sootup.core.graph.BasicBlock;
@@ -44,6 +46,9 @@ import sootup.core.views.View;
 import sootup.interceptors.DeadAssignmentEliminator;
 import sootup.java.core.JavaIdentifierFactory;
 import sootup.java.core.buildsrccode.JavaCodeStmtVisitor;
+import sootup.java.core.runsrccodestr.InMemoryClass;
+import sootup.java.core.runsrccodestr.InMemoryFileManager;
+import sootup.java.core.runsrccodestr.JavaSrcCodeFromString;
 
 @Tag("Java8")
 public class JimpleStringAnalysisInputLocationTest {
@@ -92,7 +97,8 @@ public class JimpleStringAnalysisInputLocationTest {
   }
 
   @Test
-  public void testJimpleJavaObjectPrinter() {
+  public void testJimpleJavaObjectPrinter()
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     String jimpleString =
         "public class JimpleJavaObjectPrinter extends java.lang.Object\n"
             + "{\n"
@@ -141,9 +147,69 @@ public class JimpleStringAnalysisInputLocationTest {
           }
           // has to be called at last when all stmts are visited
           javaCodeStmtVisitor.createStmtGraph(body);
-          javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
+          // javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
+          Assertions.assertEquals(
+              bodyStmtGraph.toString(),
+              whenStrIsCompiled_ThenCodeShouldExecute(javaCodeStmtVisitor.getJavaCodeObjects()));
         }
       }
     }
+  }
+
+  public String whenStrIsCompiled_ThenCodeShouldExecute(Set<String> javaCodeObjects)
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    String dynamicStr = String.join("\n", javaCodeObjects);
+    String sourceCode =
+        // This changes according to the packageName of the class where test is written
+        "package sootup.jimple.frontend;\n"
+            + "import java.util.*;\n"
+            + "import sootup.core.graph.*;\n"
+            + "import sootup.core.signatures.*;\n"
+            + "import sootup.core.jimple.*;\n"
+            + "import sootup.core.inputlocation.*;\n"
+            + "import sootup.core.jimple.basic.*;\n"
+            + "import sootup.core.jimple.common.ref.*;\n"
+            + "import sootup.core.jimple.common.constant.*;\n"
+            + "import sootup.core.jimple.common.stmt.*;\n"
+            + "import sootup.core.jimple.common.expr.*;\n"
+            + "import sootup.core.model.*;\n"
+            + "import sootup.java.core.JavaIdentifierFactory;\n"
+            + "import sootup.java.core.language.JavaJimple;\n"
+            + "import sootup.java.core.views.JavaView;\n"
+            + "import sootup.java.core.runsrccodestr.InMemoryClass;\n"
+            + "public class TestClass implements InMemoryClass {\n"
+            + "@Override\n"
+            + "    public String runCode() {\n"
+            + "        "
+            + dynamicStr
+            + "\n"
+            + "    }\n"
+            + "}\n";
+
+    // This changes according to the fullyQualifiedName of the class where test is written
+    String qualifiedClassName = "sootup.jimple.frontend.TestClass";
+
+    org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
+    JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+    InMemoryFileManager manager =
+        new InMemoryFileManager(compiler.getStandardFileManager(null, null, null));
+
+    List<JavaFileObject> sourceFiles =
+        Collections.singletonList(new JavaSrcCodeFromString(qualifiedClassName, sourceCode));
+    JavaCompiler.CompilationTask task =
+        compiler.getTask(null, manager, diagnostics, null, null, sourceFiles);
+    boolean result = task.call();
+
+    if (!result) {
+      diagnostics.getDiagnostics().forEach(d -> logger.error(String.valueOf(d)));
+    } else {
+      ClassLoader classLoader = manager.getClassLoader(null);
+      Class<?> clazz = classLoader.loadClass(qualifiedClassName);
+      InMemoryClass instanceOfClass = (InMemoryClass) clazz.newInstance();
+      Assertions.assertInstanceOf(InMemoryClass.class, instanceOfClass);
+      return instanceOfClass.runCode();
+    }
+    return "ClassNotFoundException, InstantiationException, IllegalAccessException";
   }
 }

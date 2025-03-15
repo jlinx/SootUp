@@ -23,10 +23,13 @@ package sootup.java.core.buildsrccode;
  */
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sootup.core.jimple.basic.Immediate;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
 import sootup.core.jimple.common.constant.*;
@@ -34,6 +37,7 @@ import sootup.core.jimple.common.expr.*;
 import sootup.core.jimple.common.ref.*;
 import sootup.core.jimple.visitor.ValueVisitor;
 import sootup.core.jimple.visitor.Visitor;
+import sootup.core.types.Type;
 
 public class StmtValueVisitor implements ValueVisitor, Visitor {
 
@@ -378,19 +382,41 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
       String virtualInvokeExprVarName = "virtualInvokeExpr" + i;
       valueVarName.put(expr, virtualInvokeExprVarName);
       String methodSigVarName = "methodSig" + i;
+
+      List<Type> paramTypes = expr.getMethodSignature().getParameterTypes();
+      String paramListStr =
+          paramTypes.isEmpty()
+              ? ""
+              : String.format(
+                  "Arrays.asList(%s)",
+                  paramTypes.stream()
+                      .map(param -> String.format("factory.getClassType(\"%s\")", param))
+                      .collect(Collectors.joining(", ")));
+
       String methodSigStr =
           String.format(
-              "MethodSignature %s = new MethodSignature(%s, %s);",
+              "MethodSignature %s = new MethodSignature(factory.getClassType(\"%s\"), factory.getMethodSubSignature(\"%s\", factory.getType(\"%s\"), %s));",
               methodSigVarName,
               expr.getMethodSignature().getDeclClassType(),
-              expr.getMethodSignature().getSubSignature());
+              expr.getMethodSignature().getName(),
+              expr.getMethodSignature().getType(),
+              paramListStr);
+      List<Immediate> exprArgs = expr.getArgs();
+      String exprArgsListStr =
+          exprArgs.isEmpty()
+              ? ""
+              : String.format(
+                  "Arrays.asList(%s)",
+                  exprArgs.stream()
+                      .map(exprArg -> String.format("%s", valueVarName.get(exprArg)))
+                      .collect(Collectors.joining(", ")));
       String virtualInvokeExprStr =
           String.format(
               "JVirtualInvokeExpr %s = new JVirtualInvokeExpr(%s, %s, %s);",
               virtualInvokeExprVarName,
               valueVarName.get(expr.getBase()),
               methodSigVarName,
-              expr.getArgs());
+              exprArgsListStr);
       valueGenStr.put(expr, String.join("\n", methodSigStr, virtualInvokeExprStr));
     }
     logger.debug("caseVirtualInvokeExpr");
@@ -477,7 +503,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
       String fieldSigVarName = "fieldSig" + i;
       String fieldSigStr =
           String.format(
-              "FieldSignature %s = view.getIdentifierFactory().getFieldSignature(\"%s\", JavaIdentifierFactory.getInstance().getClassType(\"%s\"), \"%s\");",
+              "FieldSignature %s = factory.getFieldSignature(\"%s\", factory.getClassType(\"%s\"), \"%s\");",
               fieldSigVarName,
               ref.getFieldSignature().getName(),
               ref.getFieldSignature().getDeclClassType(),
@@ -539,7 +565,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
       valueVarName.put(ref, thisRefVarName);
       String thisRefStr =
           String.format(
-              "JThisRef %s = new JThisRef(JavaIdentifierFactory.getInstance().getClassType(\"%s\"));",
+              "JThisRef %s = new JThisRef(factory.getClassType(\"%s\"));",
               thisRefVarName, ref.getType());
       valueGenStr.put(ref, thisRefStr);
     }

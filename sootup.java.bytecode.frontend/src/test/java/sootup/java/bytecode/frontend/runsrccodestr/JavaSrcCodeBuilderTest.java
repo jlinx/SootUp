@@ -93,8 +93,8 @@ public class JavaSrcCodeBuilderTest {
   public String whenStrIsCompiled_ThenCodeShouldExecute(Set<String> javaCodeObjects)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     String dynamicStr = String.join("\n", javaCodeObjects);
-    ;
     String sourceCode =
+        // This changes according to the packageName of the class where test is written
         "package sootup.java.bytecode.frontend.runsrccodestr;\n"
             + "import java.util.*;\n"
             + "import sootup.core.graph.*;\n"
@@ -116,6 +116,7 @@ public class JavaSrcCodeBuilderTest {
             + "\n"
             + "    }\n"
             + "}\n";
+    // This changes according to the fullyQualifiedName of the class where test is written
     String qualifiedClassName = "sootup.java.bytecode.frontend.runsrccodestr.TestClass";
 
     org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
