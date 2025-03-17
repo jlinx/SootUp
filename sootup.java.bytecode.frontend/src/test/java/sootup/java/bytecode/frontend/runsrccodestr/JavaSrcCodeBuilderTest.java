@@ -36,15 +36,27 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import sootup.core.graph.BasicBlock;
+import sootup.core.graph.MutableStmtGraph;
 import sootup.core.graph.StmtGraph;
-import sootup.core.jimple.common.stmt.Stmt;
+import sootup.core.inputlocation.EagerInputLocation;
+import sootup.core.jimple.Jimple;
+import sootup.core.jimple.basic.Local;
+import sootup.core.jimple.basic.StmtPositionInfo;
+import sootup.core.jimple.common.constant.IntConstant;
+import sootup.core.jimple.common.expr.JGeExpr;
+import sootup.core.jimple.common.ref.JParameterRef;
+import sootup.core.jimple.common.ref.JThisRef;
+import sootup.core.jimple.common.stmt.*;
+import sootup.core.model.Body;
 import sootup.core.model.SootMethod;
 import sootup.core.model.SourceType;
 import sootup.interceptors.TypeAssigner;
 import sootup.java.bytecode.frontend.inputlocation.JavaClassPathAnalysisInputLocation;
+import sootup.java.core.JavaIdentifierFactory;
 import sootup.java.core.JavaSootClass;
 import sootup.java.core.JavaSootMethod;
 import sootup.java.core.buildsrccode.JavaCodeStmtVisitor;
+import sootup.java.core.language.JavaJimple;
 import sootup.java.core.runsrccodestr.InMemoryClass;
 import sootup.java.core.runsrccodestr.InMemoryFileManager;
 import sootup.java.core.runsrccodestr.JavaSrcCodeFromString;
@@ -80,14 +92,97 @@ public class JavaSrcCodeBuilderTest {
         for (Stmt blockStmt : blockStmts) {
           blockStmt.accept(javaCodeStmtVisitor);
         }
-        // has to be called at last when all stmts are visited
-        javaCodeStmtVisitor.createStmtGraph(sm.getBody());
-        // javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
-        Assertions.assertEquals(
-            bodyStmtGraph.toString(),
-            whenStrIsCompiled_ThenCodeShouldExecute(javaCodeStmtVisitor.getJavaCodeObjects()));
       }
+      // has to be called at last when all stmts are visited
+      javaCodeStmtVisitor.createStmtGraph(sm.getBody());
+      // javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
+      Assertions.assertEquals(
+          bodyStmtGraph.toString(),
+          whenStrIsCompiled_ThenCodeShouldExecute(javaCodeStmtVisitor.getJavaCodeObjects()));
     }
+  }
+
+  @Test
+  public void testStmtGraphToJavaSrcCodeObjects_ifElse()
+      throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    String classPath = "../shared-test-resources/miniTestSuite/java6/binary";
+    JavaClassPathAnalysisInputLocation inputLocation =
+        new JavaClassPathAnalysisInputLocation(
+            classPath, SourceType.Application, Collections.singletonList(new TypeAssigner()));
+    JavaView view = new JavaView(inputLocation);
+    List<JavaSootClass> javaSootClassList =
+        view.getClasses()
+            .filter(cls -> cls.getName().equals("IfElseStatement"))
+            .collect(Collectors.toList());
+    // System.out.println(javaSootClassList);
+    List<JavaSootMethod> javaSootMethods =
+        javaSootClassList.get(0).getMethods().stream()
+            .filter(sm -> sm.getName().equals("ifElseCascadingStatement"))
+            .collect(Collectors.toList());
+    for (SootMethod sm : javaSootMethods) {
+      JavaCodeStmtVisitor javaCodeStmtVisitor = new JavaCodeStmtVisitor(sm.getBody());
+      StmtGraph<?> bodyStmtGraph = sm.getBody().getStmtGraph();
+      Iterator<BasicBlock<?>> bodyStmtGraphBlkIt = bodyStmtGraph.getBlockIterator();
+      while (bodyStmtGraphBlkIt.hasNext()) {
+        BasicBlock<?> block = bodyStmtGraphBlkIt.next();
+        List<Stmt> blockStmts = block.getStmts();
+        for (Stmt blockStmt : blockStmts) {
+          blockStmt.accept(javaCodeStmtVisitor);
+        }
+      }
+
+      // has to be called at last when all stmts are visited
+      javaCodeStmtVisitor.createStmtGraph(sm.getBody());
+      javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
+      Assertions.assertEquals(
+          bodyStmtGraph.toString(),
+          whenStrIsCompiled_ThenCodeShouldExecute(javaCodeStmtVisitor.getJavaCodeObjects()));
+    }
+  }
+
+  @Test
+  public void testcode() {
+    JavaView view = new JavaView(Collections.singletonList(new EagerInputLocation()));
+    Body.BodyBuilder bodyBuilder = Body.builder();
+    JavaIdentifierFactory factory = JavaIdentifierFactory.getInstance();
+    StmtPositionInfo noStmtPositionInfo = StmtPositionInfo.getNoStmtPositionInfo();
+    Local local1 = JavaJimple.newLocal("this", factory.getClassType("IfElseStatement"));
+    JThisRef thisRef2 = new JThisRef(factory.getClassType("IfElseStatement"));
+    JIdentityStmt identity1 = new JIdentityStmt(local1, thisRef2, noStmtPositionInfo);
+    Local local3 = JavaJimple.newLocal("l1", factory.getClassType("int"));
+    JParameterRef parameterRef4 = new JParameterRef(factory.getType("int"), 0);
+    JIdentityStmt identity2 = new JIdentityStmt(local3, parameterRef4, noStmtPositionInfo);
+    Local local6 = JavaJimple.newLocal("l2", factory.getClassType("byte"));
+    IntConstant int5 = IntConstant.getInstance(0);
+    JAssignStmt assignment3 = JavaJimple.newAssignStmt(local6, int5, noStmtPositionInfo);
+    IntConstant int7 = IntConstant.getInstance(42);
+    JGeExpr geExpr8 = Jimple.newGeExpr(local3, int7);
+    JIfStmt if4 = Jimple.newIfStmt(geExpr8, noStmtPositionInfo);
+    JGeExpr geExpr9 = Jimple.newGeExpr(local3, int7);
+    JIfStmt if5 = Jimple.newIfStmt(geExpr9, noStmtPositionInfo);
+    IntConstant int10 = IntConstant.getInstance(11);
+    JAssignStmt assignment6 = JavaJimple.newAssignStmt(local6, int10, noStmtPositionInfo);
+    JGotoStmt goto7 = new JGotoStmt(noStmtPositionInfo);
+    IntConstant int11 = IntConstant.getInstance(12);
+    JAssignStmt assignment8 = JavaJimple.newAssignStmt(local6, int11, noStmtPositionInfo);
+    JGotoStmt goto9 = new JGotoStmt(noStmtPositionInfo);
+    IntConstant int12 = IntConstant.getInstance(3);
+    JAssignStmt assignment10 = JavaJimple.newAssignStmt(local6, int12, noStmtPositionInfo);
+    JReturnStmt return11 = new JReturnStmt(local6, noStmtPositionInfo);
+    MutableStmtGraph stmtGraph = bodyBuilder.getStmtGraph();
+    stmtGraph.setStartingStmt(identity1);
+    stmtGraph.addNode(identity1);
+    stmtGraph.addNode(identity2);
+    stmtGraph.addNode(assignment3);
+    stmtGraph.addNode(if4);
+    stmtGraph.addNode(if5);
+    stmtGraph.addNode(assignment6);
+    stmtGraph.addNode(goto7);
+    stmtGraph.addNode(assignment8);
+    stmtGraph.addNode(goto9);
+    stmtGraph.addNode(assignment10);
+    stmtGraph.addNode(return11);
+    System.out.println(stmtGraph);
   }
 
   public String whenStrIsCompiled_ThenCodeShouldExecute(Set<String> javaCodeObjects)

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import sootup.core.jimple.basic.LValue;
 import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.Value;
+import sootup.core.jimple.common.expr.AbstractConditionExpr;
 import sootup.core.jimple.common.expr.AbstractInvokeExpr;
 import sootup.core.jimple.common.ref.IdentityRef;
 import sootup.core.jimple.common.stmt.*;
@@ -95,9 +96,9 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
     Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
     List<String> valStrList =
-        valueGenStr.keySet().stream()
-            .filter(vals::contains)
-            .map(valueGenStr::get) // Get the value for each key
+        vals.stream()
+            .map(valueGenStr::get) // Get the corresponding value from valueGenStr
+            .filter(Objects::nonNull) // Ensure no null values are added
             .collect(Collectors.toList());
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
     javaSrcCodeBuilder.addInvoke(stmt, valueVarName.get(stmt.getInvokeExpr().get()), valStrList);
@@ -125,9 +126,9 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
     List<Value> vals = Arrays.asList(leftOp, rightOp);
     List<String> valStrList =
-        valueGenStr.keySet().stream()
-            .filter(vals::contains)
-            .map(valueGenStr::get) // Get the value for each key
+        vals.stream()
+            .map(valueGenStr::get) // Get the corresponding value from valueGenStr
+            .filter(Objects::nonNull) // Ensure no null values are added
             .collect(Collectors.toList());
 
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
@@ -156,9 +157,9 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
     List<Value> vals = Arrays.asList(leftOp, rightOp);
     List<String> valStrList =
-        valueGenStr.keySet().stream()
-            .filter(vals::contains)
-            .map(valueGenStr::get) // Get the value for each key
+        vals.stream()
+            .map(valueGenStr::get) // Get the corresponding value from valueGenStr
+            .filter(Objects::nonNull) // Ensure no null values are added
             .collect(Collectors.toList());
 
     javaSrcCodeBuilder.addJIdentityStmt(
@@ -227,9 +228,20 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
     if (stmt.getDef().isPresent()) {
       stmt.getDef().get().accept(stmtValueVisitor);
     }
-    stmt.getCondition().accept(stmtValueVisitor);
+    AbstractConditionExpr conditionExpr = stmt.getCondition();
+    conditionExpr.accept(stmtValueVisitor);
 
-    javaSrcCodeBuilder.addIf(stmt);
+    Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
+    Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
+
+    List<Value> vals = Arrays.asList(conditionExpr.getOp1(), conditionExpr.getOp2(), conditionExpr);
+    List<String> valStrList =
+        vals.stream()
+            .map(valueGenStr::get) // Get the corresponding value from valueGenStr
+            .filter(Objects::nonNull) // Ensure no null values are added
+            .collect(Collectors.toList());
+
+    javaSrcCodeBuilder.addIf(stmt, valueVarName.get(conditionExpr), valStrList);
     logger.debug("JIfStmt");
   }
 
@@ -286,9 +298,9 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
     Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
     List<String> valStrList =
-        valueGenStr.keySet().stream()
-            .filter(vals::contains)
-            .map(valueGenStr::get) // Get the value for each key
+        vals.stream()
+            .map(valueGenStr::get) // Get the corresponding value from valueGenStr
+            .filter(Objects::nonNull) // Ensure no null values are added
             .collect(Collectors.toList());
     Map<Value, String> valueVarName = stmtValueVisitor.getValueVarName();
 
@@ -314,9 +326,9 @@ public class JavaCodeStmtVisitor implements StmtVisitor, Visitor {
 
     Map<Value, String> valueGenStr = stmtValueVisitor.getValueGenStr();
     List<String> valStrList =
-        valueGenStr.keySet().stream()
-            .filter(vals::contains)
-            .map(valueGenStr::get) // Get the value for each key
+        vals.stream()
+            .map(valueGenStr::get) // Get the corresponding value from valueGenStr
+            .filter(Objects::nonNull) // Ensure no null values are added
             .collect(Collectors.toList());
 
     javaSrcCodeBuilder.addJReturnVoid(stmt, valStrList);

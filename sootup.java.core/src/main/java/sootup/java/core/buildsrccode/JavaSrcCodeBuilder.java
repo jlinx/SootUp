@@ -61,14 +61,30 @@ public class JavaSrcCodeBuilder {
     List<Stmt> bodyStmts = body.getStmts();
     if (!bodyStmts.isEmpty()) {
       Iterator<Stmt> stmtIterator = bodyStmts.iterator();
-      Stmt previous = stmtIterator.next();
+      // TODO: how to add edges or blocks when jumping statements?
+      while (stmtIterator.hasNext()) {
+        Stmt next = stmtIterator.next();
+        javaCodeObjects.add(String.format("stmtGraph.addNode(%s);", stmtVarName.get(next)));
+      }
+      /*
       while (stmtIterator.hasNext()) {
         Stmt current = stmtIterator.next();
         String outNode = stmtVarName.get(previous);
         String inNode = stmtVarName.get(current);
-        javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, %s);", outNode, inNode));
+        if (current instanceof JIfStmt) {
+          Stmt trueIfStmtTarget = ((JIfStmt) current).getTargetStmts(body).get(0);
+          javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, JIfStmt.FALSE_BRANCH_IDX, %s);", inNode, stmtVarName.get(trueIfStmtTarget)));
+          Stmt next = stmtIterator.next();
+          javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, JIfStmt.TRUE_BRANCH_IDX, %s);", inNode, stmtVarName.get(next)));
+        } else if (current instanceof JGotoStmt || previous instanceof JGotoStmt) {
+          Stmt gotoStmtTarget = ((JGotoStmt) previous).getTargetStmts(body).get(0);
+          javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, JGotoStmt.BRANCH_IDX, %s);", outNode, stmtVarName.get(gotoStmtTarget)));
+        } else {
+          javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, %s);", outNode, inNode));
+        }
         previous = current;
       }
+       */
       javaCodeObjects.add("return stmtGraph.toString();");
     }
   }
@@ -132,20 +148,23 @@ public class JavaSrcCodeBuilder {
   }
 
   public void addNop(JNopStmt stmt) {
-    javaCodeObjects.add(
-        String.format("Stmt nop = new JNopStmt(StmtPositionInfo.getNoStmtPositionInfo())"));
+    javaCodeObjects.add(String.format("Stmt nop = new JNopStmt(noStmtPositionInfo)"));
   }
 
   public void addGoto(JGotoStmt stmt) {
-    javaCodeObjects.add(
-        String.format("Stmt stmt1 = new JGotoStmt(StmtPositionInfo.getNoStmtPositionInfo());"));
+    if (!stmtGenStr.containsKey(stmt)) {
+      String gotoVarName = "goto" + stmtCounter++;
+      stmtVarName.put(stmt, gotoVarName);
+      String gotoStmtStr =
+          String.format("JGotoStmt %s = new JGotoStmt(noStmtPositionInfo);", gotoVarName);
+      stmtGenStr.put(stmt, gotoStmtStr);
+      javaCodeObjects.add(gotoStmtStr);
+    }
   }
 
   public void addJRet(JRetStmt stmt) {
     javaCodeObjects.add(
-        String.format(
-            "Stmt stmt = new JRetStmt(%s, StmtPositionInfo.getNoStmtPositionInfo());",
-            stmt.getStmtAddress()));
+        String.format("Stmt stmt = new JRetStmt(%s, noStmtPositionInfo);", stmt.getStmtAddress()));
   }
 
   public void addJReturn(JReturnStmt stmt, String returnOpVarName, List<String> getValueStrs) {
@@ -165,15 +184,13 @@ public class JavaSrcCodeBuilder {
 
   public void addJThrow(JThrowStmt stmt) {
     javaCodeObjects.add(
-        String.format(
-            "Stmt jthrow = new JThrowStmt(%s, StmtPositionInfo.getNoStmtPositionInfo());",
-            stmt.getOp()));
+        String.format("Stmt jthrow = new JThrowStmt(%s, noStmtPositionInfo);", stmt.getOp()));
   }
 
   public void addJSwitch(JSwitchStmt stmt) {
     javaCodeObjects.add(
         String.format(
-            "Stmt jswitch = new JSwitchStmt(%s, %s, StmtPositionInfo.getNoStmtPositionInfo());",
+            "Stmt jswitch = new JSwitchStmt(%s, %s, noStmtPositionInfo);",
             stmt.getKey(), stmt.getValues()));
   }
 
@@ -184,31 +201,34 @@ public class JavaSrcCodeBuilder {
       javaCodeObjects.addAll(getValueStrs);
       String returnVoidStmtStr =
           String.format(
-              "JReturnVoidStmt %s = new JReturnVoidStmt(StmtPositionInfo.getNoStmtPositionInfo());",
-              returnVoidVarName);
+              "JReturnVoidStmt %s = new JReturnVoidStmt(noStmtPositionInfo);", returnVoidVarName);
       stmtGenStr.put(stmt, returnVoidStmtStr);
       javaCodeObjects.add(returnVoidStmtStr);
     }
   }
 
-  public void addIf(JIfStmt stmt) {
-    javaCodeObjects.add(
-        String.format(
-            "Stmt jif = Jimple.newIfStmt(%s, StmtPositionInfo.getNoStmtPositionInfo());",
-            stmt.getCondition()));
+  public void addIf(JIfStmt stmt, String exprVarName, List<String> getValueStrs) {
+    if (!stmtGenStr.containsKey(stmt)) {
+      String ifVarName = "if" + stmtCounter++;
+      stmtVarName.put(stmt, ifVarName);
+      javaCodeObjects.addAll(getValueStrs);
+      String ifStmtStr =
+          String.format(
+              "JIfStmt %s = Jimple.newIfStmt(%s, noStmtPositionInfo);", ifVarName, exprVarName);
+      stmtGenStr.put(stmt, ifStmtStr);
+      javaCodeObjects.add(ifStmtStr);
+    }
   }
 
   public void addJExitMonitor(JExitMonitorStmt stmt) {
     javaCodeObjects.add(
         String.format(
-            "Stmt jexitmonitor = new JExitMonitorStmt(%s, StmtPositionInfo.getNoStmtPositionInfo());",
-            stmt.getOp()));
+            "Stmt jexitmonitor = new JExitMonitorStmt(%s, noStmtPositionInfo);", stmt.getOp()));
   }
 
   public void addJEnterMonitor(JEnterMonitorStmt stmt) {
     javaCodeObjects.add(
         String.format(
-            "Stmt jentermonitor = new JEnterMonitorStmt(%s, StmtPositionInfo.getNoStmtPositionInfo());",
-            stmt.getOp()));
+            "Stmt jentermonitor = new JEnterMonitorStmt(%s, noStmtPositionInfo);", stmt.getOp()));
   }
 }

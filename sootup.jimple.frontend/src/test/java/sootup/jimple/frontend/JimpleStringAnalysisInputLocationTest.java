@@ -145,13 +145,13 @@ public class JimpleStringAnalysisInputLocationTest {
           for (Stmt blockStmt : blockStmts) {
             blockStmt.accept(javaCodeStmtVisitor);
           }
-          // has to be called at last when all stmts are visited
-          javaCodeStmtVisitor.createStmtGraph(body);
-          // javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
-          Assertions.assertEquals(
-              bodyStmtGraph.toString(),
-              whenStrIsCompiled_ThenCodeShouldExecute(javaCodeStmtVisitor.getJavaCodeObjects()));
         }
+        // has to be called at last when all stmts are visited
+        javaCodeStmtVisitor.createStmtGraph(body);
+        // javaCodeStmtVisitor.getJavaCodeObjects().forEach(System.out::println);
+        Assertions.assertEquals(
+            bodyStmtGraph.toString(),
+            whenStrIsCompiled_ThenCodeShouldExecute(javaCodeStmtVisitor.getJavaCodeObjects()));
       }
     }
   }

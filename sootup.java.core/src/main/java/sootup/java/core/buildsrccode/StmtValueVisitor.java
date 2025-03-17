@@ -284,8 +284,18 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
 
   @Override
   public void caseGeExpr(JGeExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String geExprVarName = "geExpr" + valueCounter++;
+      valueVarName.put(expr, geExprVarName);
+      String geExprStr =
+          String.format(
+              "JGeExpr %s = Jimple.newGeExpr(%s, %s);",
+              geExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, geExprStr);
+    }
     logger.debug("caseGeExpr");
   }
 
@@ -537,7 +547,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
       valueVarName.put(ref, parameterRefVarName);
       String parameterRefStr =
           String.format(
-              "JParameterRef %s = new JParameterRef(JavaIdentifierFactory.getInstance().getType(\"%s\"), %s);",
+              "JParameterRef %s = new JParameterRef(factory.getType(\"%s\"), %s);",
               parameterRefVarName, ref.getType(), ref.getIndex());
       valueGenStr.put(ref, parameterRefStr);
     }
@@ -551,7 +561,7 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
       valueVarName.put(ref, caughtExceptionRefVarName);
       String caughtExceptionRefStr =
           String.format(
-              "JCaughtExceptionRef %s = new JCaughtExceptionRef(JavaIdentifierFactory.getInstance().getType(\"java.lang.Throwable\"));",
+              "JCaughtExceptionRef %s = new JCaughtExceptionRef(factory.getType(\"java.lang.Throwable\"));",
               caughtExceptionRefVarName);
       valueGenStr.put(ref, caughtExceptionRefStr);
     }
