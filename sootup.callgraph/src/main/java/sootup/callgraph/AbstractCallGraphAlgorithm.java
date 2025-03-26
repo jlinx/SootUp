@@ -23,10 +23,7 @@ package sootup.callgraph;
  */
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -144,15 +141,17 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
       MutableCallGraph cg) {
     int numProcessors = Runtime.getRuntime().availableProcessors();
     ExecutorService executor = Executors.newFixedThreadPool(numProcessors);
-    while (true) {
-      MethodSignature methodSignature;
-      synchronized (workList) {
-        if (workList.isEmpty()) {
-          break;
-        }
-        methodSignature = workList.pop();
+    ConcurrentLinkedDeque<MethodSignature> taskQueue = new ConcurrentLinkedDeque<>(workList);
+    while (!taskQueue.isEmpty() || ((ThreadPoolExecutor) executor).getActiveCount() > 0) {
+      MethodSignature methodSignature = taskQueue.poll();
+      if (methodSignature != null) {
+        executor.submit(
+            () -> {
+              ConcurrentLinkedDeque<MethodSignature> newMethodSignatures =
+                  processMethodSignature(methodSignature, taskQueue, processed, cg);
+              taskQueue.addAll(newMethodSignatures);
+            });
       }
-      executor.submit(() -> processMethodSignature(methodSignature, workList, processed, cg));
     }
     executor.shutdown();
     try {
@@ -165,20 +164,20 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
     }
   }
 
-  final void processMethodSignature(
+  final ConcurrentLinkedDeque<MethodSignature> processMethodSignature(
       MethodSignature currentMethodSignature,
       ConcurrentLinkedDeque<MethodSignature> workList,
       Set<MethodSignature> processed,
       MutableCallGraph cg) {
     // skip if already processed
     if (processed.contains(currentMethodSignature)) {
-      return;
+      return workList;
     }
 
     // skip if library class
     SootClass currentClass = view.getClass(currentMethodSignature.getDeclClassType()).orElse(null);
     if (currentClass == null || currentClass.isLibraryClass()) {
-      return;
+      return workList;
     }
 
     // perform pre-processing if needed
@@ -204,6 +203,8 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
 
     // perform post-processing if needed
     postProcessingMethod(currentMethodSignature, workList, cg);
+
+    return workList;
   }
 
   /**
