@@ -24,6 +24,9 @@ package sootup.callgraph;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -139,44 +142,68 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
       ConcurrentLinkedDeque<MethodSignature> workList,
       Set<MethodSignature> processed,
       MutableCallGraph cg) {
-    while (!workList.isEmpty()) {
-      MethodSignature currentMethodSignature = workList.pop();
-      // skip if already processed
-      if (processed.contains(currentMethodSignature)) {
-        continue;
+    int numProcessors = Runtime.getRuntime().availableProcessors();
+    ExecutorService executor = Executors.newFixedThreadPool(numProcessors);
+    while (true) {
+      MethodSignature methodSignature;
+      synchronized (workList) {
+        if (workList.isEmpty()) {
+          break;
+        }
+        methodSignature = workList.pop();
       }
-
-      // skip if library class
-      SootClass currentClass =
-          view.getClass(currentMethodSignature.getDeclClassType()).orElse(null);
-      if (currentClass == null || currentClass.isLibraryClass()) {
-        continue;
-      }
-
-      // perform pre-processing if needed
-      preProcessingMethod(currentMethodSignature, workList, cg);
-
-      // process the method
-      if (!cg.containsMethod(currentMethodSignature)) {
-        cg.addMethod(currentMethodSignature);
-      }
-
-      // transform the method signature to the actual SootMethod
-      SootMethod currentMethod =
-          currentClass.getMethod(currentMethodSignature.getSubSignature()).orElse(null);
-
-      // get all call targets of invocations in the method body
-      resolveAllCallsFromSourceMethod(currentMethod, cg, workList);
-
-      // get all call targets of implicit edges in the method body
-      resolveAllImplicitCallsFromSourceMethod(currentMethod, cg, workList);
-
-      // set method as processed
-      processed.add(currentMethodSignature);
-
-      // perform post-processing if needed
-      postProcessingMethod(currentMethodSignature, workList, cg);
+      executor.submit(() -> processMethodSignature(methodSignature, workList, processed, cg));
     }
+    executor.shutdown();
+    try {
+      boolean terminated = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+      if (!terminated) {
+        System.out.println("Pool did not terminate properly!");
+      }
+    } catch (InterruptedException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  final void processMethodSignature(
+      MethodSignature currentMethodSignature,
+      ConcurrentLinkedDeque<MethodSignature> workList,
+      Set<MethodSignature> processed,
+      MutableCallGraph cg) {
+    // skip if already processed
+    if (processed.contains(currentMethodSignature)) {
+      return;
+    }
+
+    // skip if library class
+    SootClass currentClass = view.getClass(currentMethodSignature.getDeclClassType()).orElse(null);
+    if (currentClass == null || currentClass.isLibraryClass()) {
+      return;
+    }
+
+    // perform pre-processing if needed
+    preProcessingMethod(currentMethodSignature, workList, cg);
+
+    // process the method
+    if (!cg.containsMethod(currentMethodSignature)) {
+      cg.addMethod(currentMethodSignature);
+    }
+
+    // transform the method signature to the actual SootMethod
+    SootMethod currentMethod =
+        currentClass.getMethod(currentMethodSignature.getSubSignature()).orElse(null);
+
+    // get all call targets of invocations in the method body
+    resolveAllCallsFromSourceMethod(currentMethod, cg, workList);
+
+    // get all call targets of implicit edges in the method body
+    resolveAllImplicitCallsFromSourceMethod(currentMethod, cg, workList);
+
+    // set method as processed
+    processed.add(currentMethodSignature);
+
+    // perform post-processing if needed
+    postProcessingMethod(currentMethodSignature, workList, cg);
   }
 
   /**
