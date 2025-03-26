@@ -23,6 +23,7 @@ package sootup.callgraph;
  */
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -73,13 +74,15 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
    */
   @Nonnull
   final CallGraph constructCompleteCallGraph(List<MethodSignature> entryPoints) {
-    Deque<MethodSignature> workList = new ArrayDeque<>(entryPoints);
+    ConcurrentLinkedDeque<MethodSignature> workList = new ConcurrentLinkedDeque<>(entryPoints);
     Set<MethodSignature> processed = new HashSet<>();
 
     // find additional entry points
     List<MethodSignature> clinits = getClinitFromEntryPoints(entryPoints);
 
-    workList.addAll(clinits);
+    for (MethodSignature methodSignature : clinits) {
+      workList.add(methodSignature);
+    }
     MutableCallGraph cg = initializeCallGraph(entryPoints, clinits);
 
     processWorkList(workList, processed, cg);
@@ -106,7 +109,7 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
    * @param entryPoints the entry points of the call graph algorithm
    */
   protected List<MethodSignature> getClinitFromEntryPoints(List<MethodSignature> entryPoints) {
-    return entryPoints.stream()
+    return entryPoints.parallelStream()
         .map(
             methodSignature ->
                 getSignatureOfImplementedStaticInitializer(methodSignature.getDeclClassType()))
@@ -133,7 +136,9 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
    * @param cg the call graph object that is filled with the found methods and call edges.
    */
   final void processWorkList(
-      Deque<MethodSignature> workList, Set<MethodSignature> processed, MutableCallGraph cg) {
+      ConcurrentLinkedDeque<MethodSignature> workList,
+      Set<MethodSignature> processed,
+      MutableCallGraph cg) {
     while (!workList.isEmpty()) {
       MethodSignature currentMethodSignature = workList.pop();
       // skip if already processed
@@ -216,7 +221,9 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
    * @param workList the work list that will be updated of found target methods
    */
   protected void resolveAllCallsFromSourceMethod(
-      SootMethod sourceMethod, MutableCallGraph cg, Deque<MethodSignature> workList) {
+      SootMethod sourceMethod,
+      MutableCallGraph cg,
+      ConcurrentLinkedDeque<MethodSignature> workList) {
     if (sourceMethod == null || !sourceMethod.hasBody()) {
       return;
     }
@@ -241,7 +248,9 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
    * @param workList new target methods will be added to the work list
    */
   protected void resolveAllImplicitCallsFromSourceMethod(
-      SootMethod sourceMethod, MutableCallGraph cg, Deque<MethodSignature> workList) {
+      SootMethod sourceMethod,
+      MutableCallGraph cg,
+      ConcurrentLinkedDeque<MethodSignature> workList) {
     if (sourceMethod == null || !sourceMethod.hasBody()) {
       return;
     }
@@ -258,7 +267,9 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
    * @param workList found clinit methods will be added to the work list
    */
   protected void resolveAllStaticInitializerCalls(
-      SootMethod sourceMethod, MutableCallGraph cg, Deque<MethodSignature> workList) {
+      SootMethod sourceMethod,
+      MutableCallGraph cg,
+      ConcurrentLinkedDeque<MethodSignature> workList) {
     if (sourceMethod == null || !sourceMethod.hasBody()) {
       return;
     }
@@ -280,7 +291,7 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
               if (invokableStmt.containsInvokeExpr()) {
                 // static method call
                 Optional<AbstractInvokeExpr> exprOptional = invokableStmt.getInvokeExpr();
-                if (!exprOptional.isPresent()) return;
+                if (exprOptional.isEmpty()) return;
                 AbstractInvokeExpr expr = exprOptional.get();
                 if (expr instanceof JStaticInvokeExpr) {
                   ClassType newTargetClass = expr.getMethodSignature().getDeclClassType();
@@ -323,7 +334,7 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
       ClassType targetClass,
       InvokableStmt invokableStmt,
       MutableCallGraph cg,
-      Deque<MethodSignature> workList) {
+      ConcurrentLinkedDeque<MethodSignature> workList) {
     // static initializer call of class
     view.getMethod(view.getIdentifierFactory().getStaticInitializerSignature(targetClass))
         .ifPresent(
@@ -352,7 +363,7 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
    */
   protected abstract void preProcessingMethod(
       MethodSignature sourceMethod,
-      @Nonnull Deque<MethodSignature> workList,
+      @Nonnull ConcurrentLinkedDeque<MethodSignature> workList,
       @Nonnull MutableCallGraph cg);
 
   /**
@@ -364,7 +375,7 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
    */
   protected abstract void postProcessingMethod(
       MethodSignature sourceMethod,
-      @Nonnull Deque<MethodSignature> workList,
+      @Nonnull ConcurrentLinkedDeque<MethodSignature> workList,
       @Nonnull MutableCallGraph cg);
 
   @Nonnull
@@ -386,7 +397,8 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
     MutableCallGraph updated = oldCallGraph.copy();
 
     // Step 1: Add edges from the new methods to other methods
-    Deque<MethodSignature> workList = new ArrayDeque<>(newMethodSignatures);
+    ConcurrentLinkedDeque<MethodSignature> workList =
+        new ConcurrentLinkedDeque<>(newMethodSignatures);
     Set<MethodSignature> processed = new HashSet<>(oldCallGraph.getMethodSignatures());
     processWorkList(workList, processed, updated);
 
