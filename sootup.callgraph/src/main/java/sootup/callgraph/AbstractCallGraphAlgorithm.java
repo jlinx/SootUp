@@ -86,6 +86,7 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
     MutableCallGraph cg = initializeCallGraph(entryPoints, clinits);
 
     processWorkList(workList, processed, cg);
+    System.out.println(cg.exportAsDot());
     return cg;
   }
 
@@ -141,15 +142,16 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
       MutableCallGraph cg) {
     int numProcessors = Runtime.getRuntime().availableProcessors();
     ExecutorService executor = Executors.newFixedThreadPool(numProcessors);
-    ConcurrentLinkedDeque<MethodSignature> taskQueue = new ConcurrentLinkedDeque<>(workList);
-    while (!taskQueue.isEmpty() || ((ThreadPoolExecutor) executor).getActiveCount() > 0) {
-      MethodSignature methodSignature = taskQueue.poll();
+    while (!workList.isEmpty() || ((ThreadPoolExecutor) executor).getActiveCount() > 0) {
+      MethodSignature methodSignature = workList.poll();
+      System.out.println("Number active threads:" + ((ThreadPoolExecutor) executor).getActiveCount() + " metSig: " + methodSignature);
       if (methodSignature != null) {
         executor.submit(
             () -> {
               ConcurrentLinkedDeque<MethodSignature> newMethodSignatures =
-                  processMethodSignature(methodSignature, taskQueue, processed, cg);
-              taskQueue.addAll(newMethodSignatures);
+                  processMethodSignature(methodSignature, workList, processed, cg);
+              System.out.println("Neue MethodenSignaturen:" + newMethodSignatures);
+              workList.addAll(newMethodSignatures);
             });
       }
     }
@@ -182,7 +184,7 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
 
     // perform pre-processing if needed
     preProcessingMethod(currentMethodSignature, workList, cg);
-
+    System.out.println("WorkList after preProcessing:" + workList);
     // process the method
     if (!cg.containsMethod(currentMethodSignature)) {
       cg.addMethod(currentMethodSignature);
@@ -194,16 +196,16 @@ public abstract class AbstractCallGraphAlgorithm implements CallGraphAlgorithm {
 
     // get all call targets of invocations in the method body
     resolveAllCallsFromSourceMethod(currentMethod, cg, workList);
-
+    System.out.println("WorkList after allSource:" + workList);
     // get all call targets of implicit edges in the method body
     resolveAllImplicitCallsFromSourceMethod(currentMethod, cg, workList);
-
+    System.out.println("WorkList after allImplicit:" + workList);
     // set method as processed
     processed.add(currentMethodSignature);
 
     // perform post-processing if needed
     postProcessingMethod(currentMethodSignature, workList, cg);
-
+    System.out.println("WorkList after postProcessing:" + workList);
     return workList;
   }
 
