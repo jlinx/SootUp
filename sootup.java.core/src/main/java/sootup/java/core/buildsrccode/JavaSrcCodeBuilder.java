@@ -23,6 +23,7 @@ package sootup.java.core.buildsrccode;
  */
 
 import java.util.*;
+import sootup.core.graph.StmtGraph;
 import sootup.core.jimple.common.stmt.*;
 import sootup.core.jimple.javabytecode.stmt.JEnterMonitorStmt;
 import sootup.core.jimple.javabytecode.stmt.JExitMonitorStmt;
@@ -59,32 +60,45 @@ public class JavaSrcCodeBuilder {
         String.format("stmtGraph.setStartingStmt(%s);", stmtVarName.get(body.getThisStmt())));
     // loop over statements and put edges
     List<Stmt> bodyStmts = body.getStmts();
+    StmtGraph<?> bodyStmtGraph = body.getStmtGraph();
     if (!bodyStmts.isEmpty()) {
       Iterator<Stmt> stmtIterator = bodyStmts.iterator();
-      // TODO: how to add edges or blocks when jumping statements?
+      Stmt prev = stmtIterator.next();
       while (stmtIterator.hasNext()) {
-        Stmt next = stmtIterator.next();
-        javaCodeObjects.add(String.format("stmtGraph.addNode(%s);", stmtVarName.get(next)));
-      }
-      /*
-      while (stmtIterator.hasNext()) {
-        Stmt current = stmtIterator.next();
-        String outNode = stmtVarName.get(previous);
-        String inNode = stmtVarName.get(current);
-        if (current instanceof JIfStmt) {
-          Stmt trueIfStmtTarget = ((JIfStmt) current).getTargetStmts(body).get(0);
-          javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, JIfStmt.FALSE_BRANCH_IDX, %s);", inNode, stmtVarName.get(trueIfStmtTarget)));
-          Stmt next = stmtIterator.next();
-          javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, JIfStmt.TRUE_BRANCH_IDX, %s);", inNode, stmtVarName.get(next)));
-        } else if (current instanceof JGotoStmt || previous instanceof JGotoStmt) {
-          Stmt gotoStmtTarget = ((JGotoStmt) previous).getTargetStmts(body).get(0);
-          javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, JGotoStmt.BRANCH_IDX, %s);", outNode, stmtVarName.get(gotoStmtTarget)));
-        } else {
+        Stmt curr = stmtIterator.next();
+        String outNode = stmtVarName.get(prev);
+        String inNode = stmtVarName.get(curr);
+        // if prev doesn't branch then normal fallsthrough stmt
+        if (!prev.branches()) {
           javaCodeObjects.add(String.format("stmtGraph.putEdge(%s, %s);", outNode, inNode));
+        } else {
+          // JIfStmt is a branching as well as fallsthrough
+          if (prev instanceof JIfStmt && prev.fallsThrough()) {
+            Stmt branchTargetStmt = bodyStmtGraph.getBranchTargetsOf((BranchingStmt) prev).get(0);
+            List<Stmt> successors = bodyStmtGraph.successors(prev);
+            Stmt fallsThroughSuccessor =
+                successors.stream().filter(s -> s.equals(branchTargetStmt)).findFirst().get();
+            javaCodeObjects.add(
+                String.format(
+                    "stmtGraph.putEdge(%s, JIfStmt.FALSE_BRANCH_IDX, %s);",
+                    outNode, stmtVarName.get(curr)));
+            javaCodeObjects.add(
+                String.format(
+                    "stmtGraph.putEdge(%s, JIfStmt.TRUE_BRANCH_IDX, %s);",
+                    outNode, stmtVarName.get(branchTargetStmt)));
+          } else if (prev instanceof JGotoStmt) {
+            Stmt branchTargetStmt = bodyStmtGraph.getBranchTargetsOf((BranchingStmt) prev).get(0);
+            javaCodeObjects.add(
+                String.format(
+                    "stmtGraph.putEdge(%s, JGotoStmt.BRANCH_IDX, %s);",
+                    outNode, stmtVarName.get(branchTargetStmt)));
+          } else if (prev instanceof JSwitchStmt) {
+            List<Stmt> branchTargetsOf = bodyStmtGraph.getBranchTargetsOf((BranchingStmt) prev);
+            System.out.println(branchTargetsOf);
+          }
         }
-        previous = current;
+        prev = curr;
       }
-       */
       javaCodeObjects.add("return stmtGraph.toString();");
     }
   }

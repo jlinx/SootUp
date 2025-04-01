@@ -228,57 +228,137 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
 
   @Override
   public void caseAddExpr(JAddExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String addExprVarName = "addExpr" + valueCounter++;
+      valueVarName.put(expr, addExprVarName);
+      String addExprStr =
+          String.format(
+              "JAddExpr %s = Jimple.newAddExpr(%s, %s);",
+              addExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, addExprStr);
+    }
     logger.debug("caseAddExpr");
   }
 
   @Override
   public void caseAndExpr(JAndExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String andExprVarName = "andExpr" + valueCounter++;
+      valueVarName.put(expr, andExprVarName);
+      String andExprStr =
+          String.format(
+              "JAndExpr %s = Jimple.newAndExpr(%s, %s);",
+              andExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, andExprStr);
+    }
     logger.debug("caseAndExpr");
   }
 
   @Override
   public void caseCmpExpr(JCmpExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String cmpExprVarName = "cmpExpr" + valueCounter++;
+      valueVarName.put(expr, cmpExprVarName);
+      String cmpExprStr =
+          String.format(
+              "JCmpExpr %s = Jimple.newCmpExpr(%s, %s);",
+              cmpExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, cmpExprStr);
+    }
     logger.debug("caseCmpExpr");
   }
 
   @Override
   public void caseCmpgExpr(JCmpgExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String cmpgExprVarName = "cmpgExpr" + valueCounter++;
+      valueVarName.put(expr, cmpgExprVarName);
+      String cmpgExprStr =
+          String.format(
+              "JCmpgExpr %s = Jimple.newCmpgExpr(%s, %s);",
+              cmpgExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, cmpgExprStr);
+    }
     logger.debug("caseCmpgExpr");
   }
 
   @Override
   public void caseCmplExpr(JCmplExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String cmplExprVarName = "cmplExpr" + valueCounter++;
+      valueVarName.put(expr, cmplExprVarName);
+      String cmplExprStr =
+          String.format(
+              "JCmplExpr %s = Jimple.newCmplExpr(%s, %s);",
+              cmplExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, cmplExprStr);
+    }
     logger.debug("caseCmplExpr");
   }
 
   @Override
   public void caseDivExpr(JDivExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String divExprVarName = "divExpr" + valueCounter++;
+      valueVarName.put(expr, divExprVarName);
+      String divExprStr =
+          String.format(
+              "JDivExpr %s = Jimple.newDivExpr(%s, %s);",
+              divExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, divExprStr);
+    }
     logger.debug("caseDivExpr");
   }
 
   @Override
   public void caseEqExpr(JEqExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String eqExprVarName = "eqExpr" + valueCounter++;
+      valueVarName.put(expr, eqExprVarName);
+      String eqExprStr =
+          String.format(
+              "JEqExpr %s = Jimple.newEqExpr(%s, %s);",
+              eqExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, eqExprStr);
+    }
     logger.debug("caseEqExpr");
   }
 
   @Override
   public void caseNeExpr(JNeExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String neExprVarName = "neExpr" + valueCounter++;
+      valueVarName.put(expr, neExprVarName);
+      String neExprStr =
+          String.format(
+              "JNeExpr %s = Jimple.newNeExpr(%s, %s);",
+              neExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, neExprStr);
+    }
     logger.debug("caseNeExpr");
   }
 
@@ -301,78 +381,178 @@ public class StmtValueVisitor implements ValueVisitor, Visitor {
 
   @Override
   public void caseGtExpr(JGtExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+
+      String gtExprVarName = "gtExpr" + valueCounter++;
+      valueVarName.put(expr, gtExprVarName);
+      String gtExprStr =
+          String.format(
+              "JGtExpr %s = Jimple.newGtExpr(%s, %s);",
+              gtExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, gtExprStr);
+    }
     logger.debug("caseGtExpr");
   }
 
   @Override
   public void caseLeExpr(JLeExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String leExprVarName = "leExpr" + valueCounter++;
+      valueVarName.put(expr, leExprVarName);
+      String leExprStr =
+          String.format(
+              "JLeExpr %s = Jimple.newLeExpr(%s, %s);",
+              leExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, leExprStr);
+    }
     logger.debug("caseLeExpr");
   }
 
   @Override
   public void caseLtExpr(JLtExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String ltExprVarName = "ltExpr" + valueCounter++;
+      valueVarName.put(expr, ltExprVarName);
+      String ltExprStr =
+          String.format(
+              "JLtExpr %s = Jimple.newLtExpr(%s, %s);",
+              ltExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, ltExprStr);
+    }
     logger.debug("caseLtExpr");
   }
 
   @Override
   public void caseMulExpr(JMulExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String mulExprVarName = "mulExpr" + valueCounter++;
+      valueVarName.put(expr, mulExprVarName);
+      String mulExprStr =
+          String.format(
+              "JMulExpr %s = Jimple.newMulExpr(%s, %s);",
+              mulExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, mulExprStr);
+    }
     logger.debug("caseMulExpr");
   }
 
   @Override
   public void caseOrExpr(JOrExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String orExprVarName = "orExpr" + valueCounter++;
+      valueVarName.put(expr, orExprVarName);
+      String orExprStr =
+          String.format(
+              "JOrExpr %s = Jimple.newOrExpr(%s, %s);",
+              orExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, orExprStr);
+    }
     logger.debug("caseOrExpr");
   }
 
   @Override
   public void caseRemExpr(JRemExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String remExprVarName = "remExpr" + valueCounter++;
+      valueVarName.put(expr, remExprVarName);
+      String remExprStr =
+          String.format(
+              "JRemExpr %s = Jimple.newRemExpr(%s, %s);",
+              remExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, remExprStr);
+    }
     logger.debug("caseRemExpr");
   }
 
   @Override
   public void caseShlExpr(JShlExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String shlExprVarName = "shlExpr" + valueCounter++;
+      valueVarName.put(expr, shlExprVarName);
+      String shlExprStr =
+          String.format(
+              "JShlExpr %s = Jimple.newShlExpr(%s, %s);",
+              shlExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, shlExprStr);
+    }
     logger.debug("caseShlExpr");
   }
 
   @Override
   public void caseShrExpr(JShrExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String shrExprVarName = "shrExpr" + valueCounter++;
+      valueVarName.put(expr, shrExprVarName);
+      String shrExprStr =
+          String.format(
+              "JShrExpr %s = Jimple.newShrExpr(%s, %s);",
+              shrExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, shrExprStr);
+    }
     logger.debug("caseShrExpr");
   }
 
   @Override
   public void caseUshrExpr(JUshrExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String ushrExprVarName = "ushrExpr" + valueCounter++;
+      valueVarName.put(expr, ushrExprVarName);
+      String ushrExprStr =
+          String.format(
+              "JUshrExpr %s = Jimple.newUshrExpr(%s, %s);",
+              ushrExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, ushrExprStr);
+    }
     logger.debug("caseUshrExpr");
   }
 
   @Override
   public void caseSubExpr(JSubExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String subExprVarName = "subExpr" + valueCounter++;
+      valueVarName.put(expr, subExprVarName);
+      String subExprStr =
+          String.format(
+              "JSubExpr %s = Jimple.newSubExpr(%s, %s);",
+              subExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, subExprStr);
+    }
     logger.debug("caseSubExpr");
   }
 
   @Override
   public void caseXorExpr(JXorExpr expr) {
-    expr.getOp1().accept(this);
-    expr.getOp2().accept(this);
+    if (!valueGenStr.containsKey(expr)) {
+      expr.getOp1().accept(this);
+      expr.getOp2().accept(this);
+      String xorExprVarName = "xorExpr" + valueCounter++;
+      valueVarName.put(expr, xorExprVarName);
+      String xorExprStr =
+          String.format(
+              "JXorExpr %s = Jimple.newXorExpr(%s, %s);",
+              xorExprVarName, valueVarName.get(expr.getOp1()), valueVarName.get(expr.getOp2()));
+      valueGenStr.put(expr, xorExprStr);
+    }
     logger.debug("caseXorExpr");
   }
 

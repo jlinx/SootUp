@@ -22,7 +22,6 @@ package sootup.java.bytecode.frontend.runsrccodestr;
  * #L%
  */
 
-import categories.TestCategories;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -33,36 +32,22 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import sootup.core.graph.BasicBlock;
-import sootup.core.graph.MutableStmtGraph;
 import sootup.core.graph.StmtGraph;
-import sootup.core.inputlocation.EagerInputLocation;
-import sootup.core.jimple.Jimple;
-import sootup.core.jimple.basic.Local;
-import sootup.core.jimple.basic.StmtPositionInfo;
-import sootup.core.jimple.common.constant.IntConstant;
-import sootup.core.jimple.common.expr.JGeExpr;
-import sootup.core.jimple.common.ref.JParameterRef;
-import sootup.core.jimple.common.ref.JThisRef;
-import sootup.core.jimple.common.stmt.*;
-import sootup.core.model.Body;
+import sootup.core.jimple.common.stmt.Stmt;
 import sootup.core.model.SootMethod;
 import sootup.core.model.SourceType;
 import sootup.interceptors.TypeAssigner;
 import sootup.java.bytecode.frontend.inputlocation.JavaClassPathAnalysisInputLocation;
-import sootup.java.core.JavaIdentifierFactory;
 import sootup.java.core.JavaSootClass;
 import sootup.java.core.JavaSootMethod;
 import sootup.java.core.buildsrccode.JavaCodeStmtVisitor;
-import sootup.java.core.language.JavaJimple;
 import sootup.java.core.runsrccodestr.InMemoryClass;
 import sootup.java.core.runsrccodestr.InMemoryFileManager;
 import sootup.java.core.runsrccodestr.JavaSrcCodeFromString;
 import sootup.java.core.views.JavaView;
 
-@Tag(TestCategories.JAVA_8_CATEGORY)
 public class JavaSrcCodeBuilderTest {
 
   @Test
@@ -117,7 +102,7 @@ public class JavaSrcCodeBuilderTest {
     // System.out.println(javaSootClassList);
     List<JavaSootMethod> javaSootMethods =
         javaSootClassList.get(0).getMethods().stream()
-            .filter(sm -> sm.getName().equals("ifElseCascadingStatement"))
+            .filter(sm -> sm.getName().equals("ifElseIfStatement"))
             .collect(Collectors.toList());
     for (SootMethod sm : javaSootMethods) {
       JavaCodeStmtVisitor javaCodeStmtVisitor = new JavaCodeStmtVisitor(sm.getBody());
@@ -140,51 +125,6 @@ public class JavaSrcCodeBuilderTest {
     }
   }
 
-  @Test
-  public void testcode() {
-    JavaView view = new JavaView(Collections.singletonList(new EagerInputLocation()));
-    Body.BodyBuilder bodyBuilder = Body.builder();
-    JavaIdentifierFactory factory = JavaIdentifierFactory.getInstance();
-    StmtPositionInfo noStmtPositionInfo = StmtPositionInfo.getNoStmtPositionInfo();
-    Local local1 = JavaJimple.newLocal("this", factory.getClassType("IfElseStatement"));
-    JThisRef thisRef2 = new JThisRef(factory.getClassType("IfElseStatement"));
-    JIdentityStmt identity1 = new JIdentityStmt(local1, thisRef2, noStmtPositionInfo);
-    Local local3 = JavaJimple.newLocal("l1", factory.getClassType("int"));
-    JParameterRef parameterRef4 = new JParameterRef(factory.getType("int"), 0);
-    JIdentityStmt identity2 = new JIdentityStmt(local3, parameterRef4, noStmtPositionInfo);
-    Local local6 = JavaJimple.newLocal("l2", factory.getClassType("byte"));
-    IntConstant int5 = IntConstant.getInstance(0);
-    JAssignStmt assignment3 = JavaJimple.newAssignStmt(local6, int5, noStmtPositionInfo);
-    IntConstant int7 = IntConstant.getInstance(42);
-    JGeExpr geExpr8 = Jimple.newGeExpr(local3, int7);
-    JIfStmt if4 = Jimple.newIfStmt(geExpr8, noStmtPositionInfo);
-    JGeExpr geExpr9 = Jimple.newGeExpr(local3, int7);
-    JIfStmt if5 = Jimple.newIfStmt(geExpr9, noStmtPositionInfo);
-    IntConstant int10 = IntConstant.getInstance(11);
-    JAssignStmt assignment6 = JavaJimple.newAssignStmt(local6, int10, noStmtPositionInfo);
-    JGotoStmt goto7 = new JGotoStmt(noStmtPositionInfo);
-    IntConstant int11 = IntConstant.getInstance(12);
-    JAssignStmt assignment8 = JavaJimple.newAssignStmt(local6, int11, noStmtPositionInfo);
-    JGotoStmt goto9 = new JGotoStmt(noStmtPositionInfo);
-    IntConstant int12 = IntConstant.getInstance(3);
-    JAssignStmt assignment10 = JavaJimple.newAssignStmt(local6, int12, noStmtPositionInfo);
-    JReturnStmt return11 = new JReturnStmt(local6, noStmtPositionInfo);
-    MutableStmtGraph stmtGraph = bodyBuilder.getStmtGraph();
-    stmtGraph.setStartingStmt(identity1);
-    stmtGraph.addNode(identity1);
-    stmtGraph.addNode(identity2);
-    stmtGraph.addNode(assignment3);
-    stmtGraph.addNode(if4);
-    stmtGraph.addNode(if5);
-    stmtGraph.addNode(assignment6);
-    stmtGraph.addNode(goto7);
-    stmtGraph.addNode(assignment8);
-    stmtGraph.addNode(goto9);
-    stmtGraph.addNode(assignment10);
-    stmtGraph.addNode(return11);
-    System.out.println(stmtGraph);
-  }
-
   public String whenStrIsCompiled_ThenCodeShouldExecute(Set<String> javaCodeObjects)
       throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     String dynamicStr = String.join("\n", javaCodeObjects);
@@ -198,9 +138,11 @@ public class JavaSrcCodeBuilderTest {
             + "import sootup.core.jimple.common.ref.*;\n"
             + "import sootup.core.jimple.common.constant.*;\n"
             + "import sootup.core.jimple.common.stmt.*;\n"
+            + "import sootup.core.jimple.common.expr.*;\n"
             + "import sootup.core.model.*;\n"
             + "import sootup.java.core.JavaIdentifierFactory;\n"
             + "import sootup.java.core.language.JavaJimple;\n"
+            + "import sootup.core.jimple.Jimple;\n"
             + "import sootup.java.core.views.JavaView;\n"
             + "import sootup.java.core.runsrccodestr.InMemoryClass;\n"
             + "public class TestClass implements InMemoryClass {\n"
