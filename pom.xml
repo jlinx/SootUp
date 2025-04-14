@@ -326,6 +326,9 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
+                    <forkCount>10</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <parallel>methods</parallel>
                     <argLine>-Xmx4096M ${surefireArgLine}</argLine>
                     <trimStackTrace>false</trimStackTrace>
                 </configuration>
